@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+    //统一的蓝色
+    <color name="general_blue">#007de3</color>
+    //统一的红色
+    <color name="general_red">#F36E81</color>
+
+    <color name="theme_color_primary">#d20000</color>
+
+    <color name="text_color">#FF000000</color>
+    <color name="test_color">#696969</color>
+
+    <color name="white_text">#fafafa</color>
+
+    <color name="listSubTextColor">#ff888888</color>
+    <color name="listTextColor">#ff333333</color>
+    <!-- 深灰字体 -->
+    <color name="gray">#888282</color>
+
+    <color name="toolbarTextColor">#ffffffff</color>
+
+    <color name="small_font">#FF757575</color>
+
+    <color name="light_gray">#c6c6c6</color>
+
+    <color name="general_green">#66cc99</color>
+</resources>

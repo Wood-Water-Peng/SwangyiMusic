@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fresco="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:baselineAligned="false"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="6dp">
+
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:id="@+id/fragment_downloading_item_icon"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:scaleType="centerInside"
+        fresco:actualImageScaleType="centerInside"
+        fresco:placeholderImage="@mipmap/placeholder_disk_300" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/fragment_downloading_item_song_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:text="如果我变成回忆"
+            android:textColor="@color/text_color"
+            android:textSize="14sp" />
+
+        <ProgressBar
+            android:id="@+id/fragment_downloading_item_progressbar"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="20"
+            android:maxHeight="3dp"
+            android:max="100"
+            android:secondaryProgress="100"
+            android:secondaryProgressTint="@color/test_color" />
+
+    </LinearLayout>
+
+    <com.example.jackypeng.swangyimusic.rx.view.widget.DownloadButton
+        android:id="@+id/fragment_downloading_item_download_button"
+        android:layout_width="70dp"
+        android:layout_height="32dp"
+        android:layout_marginLeft="20dp"
+        android:gravity="center"
+        android:text="下载中"
+        android:textSize="12sp" />
+
+    <ImageView
+        android:id="@+id/fragment_downloading_item_clear"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:focusable="false"
+        android:foregroundTint="#434343"
+        android:padding="6dp"
+        android:src="@mipmap/list_icn_more" />
+
+</LinearLayout>

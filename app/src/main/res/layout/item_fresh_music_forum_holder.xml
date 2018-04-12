@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="10dp"
+    android:paddingTop="10dp">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="25dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <com.example.jackypeng.swangyimusic.bilibili.magicasakura.widgets.TintButton
+            android:id="@+id/private_fm"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:background="@drawable/item_fresh_music_forum_fm" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:gravity="center_horizontal"
+            android:text="私人FM"
+            android:textColor="#000000"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <com.example.jackypeng.swangyimusic.bilibili.magicasakura.widgets.TintButton
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:background="@drawable/recommend_daily" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:gravity="center_horizontal"
+            android:text="每日歌曲推荐"
+            android:textColor="#000000"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="25dp"
+        android:layout_marginRight="25dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <com.example.jackypeng.swangyimusic.bilibili.magicasakura.widgets.TintButton
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:background="@drawable/recommend_rank" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="云音乐新歌榜"
+            android:textColor="#000000"
+            android:textSize="12sp" />
+    </LinearLayout>
+</RelativeLayout>

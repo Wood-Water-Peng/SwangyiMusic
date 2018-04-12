@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.jackypeng.swangyimusic.ui.activity.PlayDetailActivity">
+
+    <ImageView
+        android:id="@+id/albumCover"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@mipmap/bg_night" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:fitsSystemWindows="true"
+            android:background="@android:color/transparent"
+            android:minHeight="?attr/actionBarSize"
+            android:theme="@style/Theme.AppCompat"
+            android:titleTextColor="@color/white_text"
+            android:subtitleTextColor="@color/white_text"
+            android:titleTextAppearance="@color/white_text"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+        <RelativeLayout
+            android:id="@+id/activity_play_detail_playing_container"
+            android:layout_width="match_parent"
+            android:layout_height="390dp"
+            android:layout_below="@+id/toolbar">
+
+            <ImageView
+                android:layout_width="260dp"
+                android:layout_height="260dp"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="60dp"
+                android:scaleType="fitCenter"
+                android:src="@mipmap/play_disc_halo" />
+
+            <com.example.jackypeng.swangyimusic.rx.view.widget.PlayingDetailAlbumPager
+                android:id="@+id/activity_play_detail_playing_vp"
+                android:layout_width="match_parent"
+                android:layout_height="260dp"
+                android:layout_marginTop="60dp" />
+
+            <ImageView
+                android:id="@+id/activity_play_detail_needle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="100dp"
+                android:layout_marginTop="-16dp"
+                android:rotation="-30"
+                android:src="@mipmap/play_needle"
+                android:transformPivotX="15.1dp"
+                android:transformPivotY="15.1dp" />
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/activity_play_detail_lrc_container"
+            android:layout_width="match_parent"
+            android:layout_height="390dp"
+            android:layout_below="@+id/toolbar"
+            android:orientation="vertical">
+
+            <com.example.jackypeng.swangyimusic.lrc.LrcView
+                android:id="@+id/activity_play_detail_lrc_view"
+                android:layout_width="match_parent"
+                android:layout_height="390dp"
+                android:layout_marginTop="10dp" />
+        </LinearLayout>
+
+        <include
+            android:id="@+id/bottom_controller"
+            layout="@layout/item_activity_play_detail_bottom_controller" />
+    </RelativeLayout>
+
+</FrameLayout>
