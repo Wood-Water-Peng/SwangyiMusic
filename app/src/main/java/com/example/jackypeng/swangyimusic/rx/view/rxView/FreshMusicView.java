@@ -1,5 +1,6 @@
 package com.example.jackypeng.swangyimusic.rx.view.rxView;
 
+import com.alibaba.fastjson.JSONObject;
 import com.example.jackypeng.swangyimusic.rx.bean.FreshMusicBean;
 
 /**
@@ -8,4 +9,5 @@ import com.example.jackypeng.swangyimusic.rx.bean.FreshMusicBean;
 
 public interface FreshMusicView extends BaseView {
     void doFetchFreshMusic(FreshMusicBean result);
+    void doFetchCarouselDetail(JSONObject result);
 }

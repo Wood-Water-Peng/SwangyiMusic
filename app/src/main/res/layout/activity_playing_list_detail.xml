@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/general_blue_lighter"
+    tools:context="com.example.jackypeng.swangyimusic.ui.activity.AlbumDetailActivity">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/activity_playing_list_detail_song_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/activity_main_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/general_blue_lighter"
+        android:fitsSystemWindows="true"
+        android:minHeight="?attr/actionBarSize">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="?actionBarSize"
+            android:gravity="center">
+
+            <ImageView
+                android:id="@+id/activity_playing_list_detail_back"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="10dp"
+                android:background="@mipmap/actionbar_back"
+                android:clickable="true" />
+
+            <TextView
+                android:id="@+id/activity_playing_list_detail_title"
+                android:layout_width="160dp"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="20dp"
+                android:layout_toRightOf="@+id/activity_playing_list_detail_back"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:singleLine="true"
+                android:textColor="@color/white_text"
+                android:textSize="14sp" />
+
+            <ImageView
+                android:id="@+id/bar_more"
+                android:layout_width="23dp"
+                android:layout_height="23dp"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_marginRight="20dp"
+                android:background="@mipmap/actionbar_more"
+                android:clickable="true" />
+
+
+            <ImageView
+                android:id="@+id/bar_search"
+                android:layout_width="23dp"
+                android:layout_height="23dp"
+                android:layout_centerVertical="true"
+                android:layout_marginRight="30dp"
+                android:layout_toLeftOf="@+id/bar_more"
+                android:background="@mipmap/actionbar_search"
+                android:scaleType="center" />
+        </RelativeLayout>
+    </android.support.v7.widget.Toolbar>
+
+
+</RelativeLayout>

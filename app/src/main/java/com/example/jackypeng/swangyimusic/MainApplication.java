@@ -37,7 +37,7 @@ public class MainApplication extends Application {
          *  网络配置
          */
         RetrofitUtil.getInstance(this).setConfiguration(new NetWorkConfiguration(this)
-                .baseUrl(NetApi.BASE_URL));
+                .baseUrl(NetApi.NEW_BASE_URL));
         QueryUtil.getInstance().setConfiguration(new NetWorkConfiguration(this)
                 .baseUrl(NetApi.QUERY_BASE_URL));
     }

@@ -3,7 +3,7 @@
     xmlns:fresco="http://schemas.android.com/tools"
     android:id="@+id/fragment_bottom_controller_content"
     android:layout_width="match_parent"
-    android:layout_height="50dp"
+    android:layout_height="wrap_content"
     android:background="@color/white_text"
     android:orientation="vertical">
 
@@ -37,7 +37,7 @@
                 android:ellipsize="marquee"
                 android:maxLines="1"
                 android:textColor="@color/text_color"
-                android:textSize="16dp" />
+                android:textSize="12dp" />
 
             <TextView
                 android:id="@+id/fragment_bottom_controller_author_name"
@@ -66,7 +66,7 @@
 
             <ImageView
                 android:id="@+id/fragment_bottom_controller_play_pause"
-                android:layout_width="42dp"
+                android:layout_width="40dp"
                 android:layout_height="42dp"
                 android:background="@mipmap/playbar_btn_play" />
 

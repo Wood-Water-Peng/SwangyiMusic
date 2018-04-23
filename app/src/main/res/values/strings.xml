@@ -12,4 +12,21 @@
     <string name="sure_to_delete_music">确定删除歌曲吗</string>
     <string name="sure">确定</string>
     <string name="cancel">取消</string>
+
+    <!--发现界面-->
+    <string name="fragment_discover_title">发现</string>
+    <string name="fragment_my_title">我的</string>
+    <string name="fragment_radio_title">电台</string>
+
+    <string name="fragment_discover_personal_fm">私人FM</string>
+    <string name="fragment_discover_daily_recommend">每日推荐</string>
+    <string name="fragment_discover_music_list">歌单</string>
+    <string name="fragment_discover_ranking_list">排行榜</string>
+
+    <string name="fragment_discover_recommend_list">推荐歌单</string>
+    <string name="fragment_discover_recommend_radio">推荐电台</string>
+    <string name="fragment_discover_recommend_mv">推荐MV</string>
+    <string name="fragment_discover_recommend_program">推荐节目</string>
+    <string name="fragment_discover_exclusive_part">独家放送</string>
+
 </resources>

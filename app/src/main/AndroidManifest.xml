@@ -26,10 +26,13 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.activity.AlbumDetailActivity" />
-        <activity android:name=".ui.activity.RadioDetailActivity" />
+        <activity
+            android:name=".ui.activity.RadioDetailActivity"
+            android:theme="@style/FullScreenTheme" />
         <activity android:name=".ui.activity.DownLoadActivity" />
         <activity android:name=".ui.activity.LocalMusicActivity" />
         <activity android:name=".ui.activity.MusicListActivity" />
+        <activity android:name=".ui.activity.PlayingListDetailActivity" />
 
         <service
             android:name=".service.MediaService"

@@ -8,7 +8,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.bumptech.glide.Glide;
 import com.example.jackypeng.swangyimusic.R;
 import com.example.jackypeng.swangyimusic.adapter.FreshMusicAdapter;
 import com.example.jackypeng.swangyimusic.rx.bean.FreshMusicBean;
@@ -21,7 +25,11 @@ import com.example.jackypeng.swangyimusic.ui.widget.SmartLoadingLayout;
 import com.example.jackypeng.swangyimusic.util.L;
 import com.example.jackypeng.swangyimusic.util.UIUtil;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import butterknife.BindView;
+import cn.bingoogolapple.bgabanner.BGABanner;
 
 /**
  * Created by jackypeng on 2018/3/6.
@@ -35,6 +43,8 @@ public class FreshMusicFragment extends BaseFragment<FreshMusicModel, FreshMusic
     RecyclerView recyclerView;
     private FreshMusicAdapter freshMusicAdapter;
     private static final String TAG = "FreshMusicFragment";
+    private boolean hasFetchCarouselData = false;
+    private boolean hasFetchContentData = false;
 
     @Override
     protected int getLayoutId() {
@@ -59,10 +69,19 @@ public class FreshMusicFragment extends BaseFragment<FreshMusicModel, FreshMusic
     }
 
     @Override
-    protected void lazyFetchData() {
-        Log.i(TAG, "---lazyFetchData---");
-        smartLoadingLayout.onLoading();
-        mPresenter.getFreshMusic();
+    public void lazyFetchData() {
+//        Log.i(TAG, "---lazyFetchData---");
+//        smartLoadingLayout.onLoading();
+//        mPresenter.getFreshMusic();
+    }
+
+    public void fetchData() {
+        if (!hasFetchCarouselData && !hasFetchContentData) {
+            Log.i(TAG, "---fetchData---");
+            smartLoadingLayout.onLoading();
+            mPresenter.getFreshMusic();
+            mPresenter.getCarouselDetail(7);
+        }
     }
 
     @Nullable
@@ -80,6 +99,7 @@ public class FreshMusicFragment extends BaseFragment<FreshMusicModel, FreshMusic
 
     @Override
     protected void onInitView(Bundle savedInstanceState) {
+        Log.i(TAG, "---onInitView---");
         smartLoadingLayout.onEmpty();
         freshMusicAdapter = new FreshMusicAdapter(getContext());
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -87,10 +107,10 @@ public class FreshMusicFragment extends BaseFragment<FreshMusicModel, FreshMusic
         smartLoadingLayout.setOnReloadClicked(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                smartLoadingLayout.onLoading();
-                mPresenter.getFreshMusic();
+                fetchData();
             }
         });
+
     }
 
     @Override
@@ -114,5 +134,17 @@ public class FreshMusicFragment extends BaseFragment<FreshMusicModel, FreshMusic
         final FreshMusicResultBean freshMusicResult = result.getResult();
         freshMusicAdapter.setData(freshMusicResult);
         smartLoadingLayout.onSuccess();
+        hasFetchContentData = true;
+    }
+
+    @Override
+    public void doFetchCarouselDetail(JSONObject result) {
+        JSONArray jsonArray = result.getJSONArray("pic");
+        List<String> bannerUrl = new ArrayList<>();
+        for (int i = 0; i < jsonArray.size(); i++) {
+            bannerUrl.add(jsonArray.getJSONObject(i).getString("randpic"));
+        }
+        hasFetchCarouselData = true;
+        freshMusicAdapter.setCarouselData(bannerUrl);
     }
 }

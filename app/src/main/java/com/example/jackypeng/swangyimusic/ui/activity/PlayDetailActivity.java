@@ -7,7 +7,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.PointF;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.os.RemoteException;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -16,6 +18,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
@@ -28,6 +31,7 @@ import com.example.jackypeng.swangyimusic.MainApplication;
 import com.example.jackypeng.swangyimusic.R;
 import com.example.jackypeng.swangyimusic.constants.BroadcastConstants;
 import com.example.jackypeng.swangyimusic.constants.PlayingMusicStatusConstants;
+import com.example.jackypeng.swangyimusic.constants.SpConstants;
 import com.example.jackypeng.swangyimusic.lrc.DefaultLrcParser;
 import com.example.jackypeng.swangyimusic.lrc.LrcRow;
 import com.example.jackypeng.swangyimusic.lrc.LrcView;
@@ -40,6 +44,7 @@ import com.example.jackypeng.swangyimusic.service.AlbumListItemTrack;
 import com.example.jackypeng.swangyimusic.service.MusicPlayer;
 import com.example.jackypeng.swangyimusic.ui.fragment.PlayingQueueFragment;
 import com.example.jackypeng.swangyimusic.ui.fragment.RoundFragment;
+import com.example.jackypeng.swangyimusic.ui.widget.SmartLoadingLayout;
 import com.example.jackypeng.swangyimusic.util.MusicUtil;
 import com.example.jackypeng.swangyimusic.util.SharePreferenceUtil;
 import com.example.jackypeng.swangyimusic.util.ToastUtil;
@@ -49,13 +54,19 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.OnClick;
+import rx.internal.util.InternalObservableUtils;
 
 import static android.support.v4.view.ViewPager.SCROLL_STATE_DRAGGING;
 import static android.widget.AbsListView.OnScrollListener.SCROLL_STATE_IDLE;
@@ -85,6 +96,8 @@ public class PlayDetailActivity extends BaseActivity {
     ViewGroup playing_container;   //播放界面组
     @BindView(R.id.activity_play_detail_lrc_container)
     ViewGroup lrc_container;    //歌词界面组
+    @BindView(R.id.activity_play_detail_smart_loading_lrc)
+    SmartLoadingLayout smartLoadingLayout_lrc;    //
     @BindView(R.id.activity_play_detail_lrc_view)
     LrcView lrcView;
     @BindView(R.id.activity_play_detail_needle)
@@ -128,7 +141,15 @@ public class PlayDetailActivity extends BaseActivity {
             ToastUtil.getInstance().toast("正在准备方法...");
         } else if (cur_status == PlayingMusicStatusConstants.PAUSING) {
             resumeMusic();
+        } else if (cur_status == PlayingMusicStatusConstants.BUFFING) {
+            ToastUtil.getInstance().toast("正在缓冲歌曲...");
         }
+        try {
+//            MusicPlayer.getInstance().getPlayingSongLrc();
+        } catch (Exception e) {
+
+        }
+
     }
 
     @OnClick(R.id.playing_pre)
@@ -145,6 +166,10 @@ public class PlayDetailActivity extends BaseActivity {
     public void playNextSong() {     //播放下一首
         try {
             List<AlbumListItemTrack> listTrack = MusicPlayer.getInstance().getPlayingListTrack();
+            if (cur_playing_song == null) {
+                ToastUtil.getInstance().toast("还没有播放任何歌曲");
+                return;
+            }
             if (cur_playing_song.getIndex() == listTrack.size() - 1) {
                 ToastUtil.getInstance().toast("这是最后一首歌曲");
             } else {
@@ -166,15 +191,17 @@ public class PlayDetailActivity extends BaseActivity {
         }
     }
 
-    class PlayingSongStatusReceiver extends BroadcastReceiver {
+    private class PlayingSongStatusReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             Bundle extras = intent.getExtras();
-            if (extras == null) {
-                return;
+            if (extras != null) {
+                Parcelable parcelable = extras.getParcelable("cur_song_track");
+                if (parcelable != null) {
+                    cur_playing_song = (AlbumListItemTrack) parcelable;
+                }
             }
-            cur_playing_song = extras.getParcelable("cur_song_track");
             if (action.equals(BroadcastConstants.UPDATE_PLAYING_PROGRESS)) {  //更新播放进度
                 updateProgressTrack();
             } else if (action.equals(BroadcastConstants.START_PLAY_SONG)) {   //歌曲开始播放
@@ -183,7 +210,50 @@ public class PlayDetailActivity extends BaseActivity {
                 updateResumeTrack();
             } else if (action.equals(BroadcastConstants.PAUSE_PLAY_SONG)) {   //歌曲暂停播放
                 updatePauseTrack();
+            } else if (action.equals(BroadcastConstants.PLAYSONG_LRC)) {   //歌词信息
+                updateLrcTrack();
+            } else if (action.equals(BroadcastConstants.ERROR_PLAYSONG)) {   //暂停为系统播放错误
+
+            } else if (action.equals(BroadcastConstants.FINISH_LAST_MUSIC)) {   //结束上一首歌的播放
+                finishLastPlayingMusic();
+                skipToCurPlayingMusicFragment(cur_playing_song.getIndex());
+            } else if (action.equals(BroadcastConstants.ERROR_LOADING_MUSIC_URL)) {   //加载歌曲url出错
+                ToastUtil.getInstance().toast("加载歌曲url错误");
+                updateErrorTrack();
+            } else if (action.equals(BroadcastConstants.ERROR_LOADING_MUSIC_LRC)) {   //lrc出错
+                ToastUtil.getInstance().toast("加载歌曲lrc错误");
+                smartLoadingLayout_lrc.onError();
             }
+        }
+
+    }
+
+    private void updateErrorTrack() {
+        iv_play_pause.setImageResource(R.mipmap.play_rdi_btn_play);
+    }
+
+    private void skipToCurPlayingMusicFragment(int index) {
+        //跳转到当前播放音乐的界面(可能会请求数据失败)
+        viewPager.setCurrentItem(index);
+    }
+
+    private void finishLastPlayingMusic() {
+        //结束播放动画
+
+    }
+
+    private void updateLrcTrack() {
+        Log.i(TAG, "lrc:" + cur_playing_song.getLrc());
+        SharePreferenceUtil.writeString(SpConstants.MUSIC_LRC_INFO, cur_playing_song.getSongId(), cur_playing_song.getLrc());
+//        final List<LrcRow> rows = DefaultLrcParser.getIstance().getLrcRows(cur_playing_song.getLrc());
+//        lrcView.setLrcRows(rows);
+//        String lrc = cur_playing_song.getLrc();
+//        byte[] bytes = lrc.getBytes();
+//        lrcView.loadLrc(new String(bytes));
+        String str_lrc = SharePreferenceUtil.readString(SpConstants.MUSIC_LRC_INFO, cur_playing_song.getSongId());
+        if (lrcView.getTag() == cur_playing_song) {
+            lrcView.setLrcRows(DefaultLrcParser.getIstance().getLrcRows(str_lrc));
+            smartLoadingLayout_lrc.onSuccess();
         }
     }
 
@@ -201,6 +271,7 @@ public class PlayDetailActivity extends BaseActivity {
             playerSeekBar.setProgress((int) cur_duration);
         }
         tv_music_duration_played.setText(MusicUtil.makeTimeString((int) cur_duration));
+        lrcView.seekTo((int) cur_duration, false, false);
     }
 
     private void updateStartTrack() {
@@ -212,6 +283,11 @@ public class PlayDetailActivity extends BaseActivity {
         iv_play_pause.setImageResource(R.mipmap.play_rdi_btn_pause);
         startRotateAnim();
         startNeedleAnim();
+
+//        viewPager.setCurrentItem(cur_playing_song.getIndex());
+        if (lrc_container.getVisibility() == View.VISIBLE) {
+            try2FetchSongLrc();
+        }
     }
 
     private void initPausedTrack() {
@@ -341,6 +417,11 @@ public class PlayDetailActivity extends BaseActivity {
         initTrack();
     }
 
+    @Override
+    protected int getStatusBarStatus() {
+        return TRANS_STATUS_BAR;
+    }
+
     private void initTrack() {  //根据MediaService播放音乐的状态更新界面
         try {
             cur_playing_song = MusicPlayer.getInstance().getPlayingSongTrack();
@@ -363,7 +444,12 @@ public class PlayDetailActivity extends BaseActivity {
         filter.addAction(BroadcastConstants.START_PLAY_SONG);
         filter.addAction(BroadcastConstants.PAUSE_PLAY_SONG);
         filter.addAction(BroadcastConstants.RESUME_PLAY_SONG);
+        filter.addAction(BroadcastConstants.ERROR_PLAYSONG);
         filter.addAction(BroadcastConstants.UPDATE_PLAYING_PROGRESS);
+        filter.addAction(BroadcastConstants.PLAYSONG_LRC);
+        filter.addAction(BroadcastConstants.FINISH_LAST_MUSIC);
+        filter.addAction(BroadcastConstants.ERROR_LOADING_MUSIC_LRC);
+        filter.addAction(BroadcastConstants.ERROR_LOADING_MUSIC_URL);
         registerReceiver(receiver, filter);
     }
 
@@ -428,13 +514,23 @@ public class PlayDetailActivity extends BaseActivity {
                 Log.i(TAG, "---curIndex---:" + cur_playing_song.getIndex());
                 if (position == cur_playing_song.getIndex() && cur_playing_song.getStatus() == PlayingMusicStatusConstants.PLAYING) {
                     getCur_fragment().setRotatePending(true);
+                    //发送一个执行旋转动画的消息
+//                    UIUtil.runInMainThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            getCur_fragment().startRotate();
+//                        }
+//                    });
                 }
                 try {
                     if (position != cur_playing_song.getIndex()) {
+                        Log.i(TAG, "---playInQueue---:" + position);
                         MusicPlayer.getInstance().playInQueue(position);
                     }
                 } catch (RemoteException e) {
                     e.printStackTrace();
+                    Log.i(TAG, "---RemoteException---:" + e.getMessage());
+
                 }
             }
 
@@ -474,14 +570,17 @@ public class PlayDetailActivity extends BaseActivity {
         viewPager.setAdapter(pagerAdapter);
         int index = cur_playing_song.getIndex();
         Log.i(TAG, "cur_index:" + index);
-        viewPager.setCurrentItem(index);
+        viewPager.setCurrentItem(index);      //如果index==0,那么onPageSelected()方法不会被调用
+        if (index == 0 && (cur_playing_song.getStatus() == PlayingMusicStatusConstants.PLAYING)) {
+            getCur_fragment().setRotatePending(true);
+        }
 //        Log.i(TAG, "cur_item:" + viewPager.getCurrentItem());
     }
 
     //拿到当前正在显示的Fragment
     private RoundFragment getCur_fragment() {
         RoundFragment item = (RoundFragment) viewPager.getAdapter().instantiateItem(viewPager, viewPager.getCurrentItem());
-        Log.i(TAG, "getCur_fragment:" + item.toString());
+//        Log.i(TAG, "getCur_fragment:" + item.toString());
         return item;
     }
 
@@ -490,46 +589,6 @@ public class PlayDetailActivity extends BaseActivity {
             ab.setTitle(title);
             ab.setSubtitle(subTitle);
         }
-    }
-
-    private void getSongLrc(final String playingSongId, final String lrc) {
-        //首先尝试从sp中获取歌词
-        String str_lrc = SharePreferenceUtil.readString(playingSongId, "lrc");
-        if (!TextUtils.isEmpty(str_lrc)) {
-            final List<LrcRow> rows = DefaultLrcParser.getIstance().getLrcRows(str_lrc);
-            lrcView.setLrcRows(rows);
-            return;
-        }
-        if (TextUtils.isEmpty(lrc)) {
-            return;
-        }
-
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder().url(lrc).build();
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Request request, IOException e) {
-                Log.i(TAG, "request_lrc_onFailure:" + e.getMessage());
-            }
-
-            @Override
-            public void onResponse(Response response) throws IOException {
-                String str_lrc = response.body().string();
-//                Log.i(TAG, "str_lrc:" + str_lrc);
-                final List<LrcRow> rows = DefaultLrcParser.getIstance().getLrcRows(str_lrc);
-                if (rows != null) {
-                    UIUtil.runInMainThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            lrcView.setLrcRows(rows);
-                        }
-                    });
-                }
-                //将其保存到本地，下次进入该界面时，优先从本地文件中获取歌词
-//                FileUtil.writeToFile(str_lrc, getExternalCacheDir().getAbsolutePath() + LRC_PATH + playingSongId);
-                SharePreferenceUtil.writeString(playingSongId, "lrc", str_lrc);
-            }
-        });
     }
 
     private void initView() {
@@ -545,6 +604,23 @@ public class PlayDetailActivity extends BaseActivity {
                 }
             }
         });
+        lrcView.setOnSeekToListener(new LrcView.OnSeekToListener() {
+            @Override
+            public void onSeekTo(int progress) {
+                //
+            }
+        });
+
+        lrcView.setOnLrcClickListener(new LrcView.OnLrcClickListener() {
+            @Override
+            public void onClick() {
+                if (lrc_container.getVisibility() == View.VISIBLE) {
+                    hideLrcContainer();
+                }
+            }
+        });
+
+
     }
 
     private void hideLrcContainer() {
@@ -552,7 +628,28 @@ public class PlayDetailActivity extends BaseActivity {
         playing_container.setVisibility(View.VISIBLE);
     }
 
+
+    private void try2FetchSongLrc() {
+        String str_lrc = SharePreferenceUtil.readString(SpConstants.MUSIC_LRC_INFO, cur_playing_song.getSongId());
+        Log.i(TAG, "sp_str_lrc:" + str_lrc);
+        if (TextUtils.isEmpty(str_lrc)) {
+            try {
+                smartLoadingLayout_lrc.onLoading();
+                lrcView.setTag(cur_playing_song);
+                MusicPlayer.getInstance().getPlayingSongLrc();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        } else {
+            smartLoadingLayout_lrc.onSuccess();
+            lrcView.setLrcRows(DefaultLrcParser.getIstance().getLrcRows(str_lrc));
+        }
+    }
+
     private void showLrcContainer() {
+        if (lrcView.getTag() == null || lrcView.getTag() != cur_playing_song) {
+            try2FetchSongLrc();
+        }
         lrc_container.setVisibility(View.VISIBLE);
         playing_container.setVisibility(View.GONE);
     }

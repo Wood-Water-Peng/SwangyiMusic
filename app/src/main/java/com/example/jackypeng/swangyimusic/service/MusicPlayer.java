@@ -13,6 +13,7 @@ import com.example.jackypeng.swangyimusic.MediaAidlInterface;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by jackypeng on 2018/3/8.
@@ -23,6 +24,7 @@ public class MusicPlayer {
     private static MusicPlayer sMusicPlayer;
     private MediaAidlInterface playerService;
     private Context mContext;
+    private CountDownLatch mConnectionBinderPoolCountDownLatch;
 
     public static MusicPlayer getInstance() {
         if (sMusicPlayer == null) {
@@ -37,15 +39,10 @@ public class MusicPlayer {
 
     private MusicPlayer(Context context) {
         this.mContext = context;
-    }
-
-    public MediaAidlInterface getPlayerService() {
-        return playerService;
-    }
-
-    public void init() {
+        mConnectionBinderPoolCountDownLatch = new CountDownLatch(1);
         bindToService();
     }
+
 
     private void bindToService() {
         Intent intent = new Intent(mContext, MediaService.class);
@@ -54,29 +51,41 @@ public class MusicPlayer {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
                 playerService = MediaAidlInterface.Stub.asInterface(service);
+                mConnectionBinderPoolCountDownLatch.countDown();
             }
 
             @Override
             public void onServiceDisconnected(ComponentName name) {
-
+                playerService = null;
             }
         }, Context.BIND_AUTO_CREATE);
+        try {
+            mConnectionBinderPoolCountDownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
 
     public void resumeSong() throws RemoteException {
         if (playerService == null) {
-            throw new IllegalArgumentException("Must bind service first!");
-        } else {
-            playerService.resumeSong();
+            bindToService();
         }
+        playerService.resumeSong();
+
     }
 
     public void playInQueue(int index) throws RemoteException {
+        if (playerService == null) {
+            bindToService();
+        }
         playerService.playSongInQueue(index);
     }
 
     public void playAll(String[] ids, HashMap<String, AlbumListItemTrack> map, int index) throws RemoteException {
+        if (playerService == null) {
+            bindToService();
+        }
         String[] queueIdsOfService = playerService.getQueueIds();
         if (Arrays.equals(ids, queueIdsOfService)) {
             playerService.playSongInQueue(index);
@@ -88,33 +97,36 @@ public class MusicPlayer {
 
     public int getSongStatus(String songId) throws RemoteException {
         if (playerService == null) {
-            throw new IllegalArgumentException("Must bind service first!");
-        } else {
-            return playerService.getSongStatus(songId);
+            bindToService();
         }
+        return playerService.getSongStatus(songId);
     }
 
     public AlbumListItemTrack getPlayingSongTrack() throws RemoteException {
         if (playerService == null) {
-            throw new IllegalArgumentException("Must bind service first!");
-        } else {
-            return playerService.getPlayingSongInfo();
+            bindToService();
         }
+        return playerService.getPlayingSongInfo();
     }
 
     public List<AlbumListItemTrack> getPlayingListTrack() throws RemoteException {
         if (playerService == null) {
-            throw new IllegalArgumentException("Must bind service first!");
-        } else {
-            return playerService.getPlayingSongList();
+            bindToService();
         }
+        return playerService.getPlayingSongList();
     }
 
     public void pauseSong() throws RemoteException {
         if (playerService == null) {
-            throw new IllegalArgumentException("Must bind service first!");
-        } else {
-            playerService.pauseSong();
+            bindToService();
         }
+        playerService.pauseSong();
+    }
+
+    public void getPlayingSongLrc() throws RemoteException {
+        if (playerService == null) {
+            bindToService();
+        }
+        playerService.getLatestSongLrc();
     }
 }

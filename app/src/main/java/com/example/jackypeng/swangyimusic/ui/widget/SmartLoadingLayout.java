@@ -40,9 +40,9 @@ public class SmartLoadingLayout extends FrameLayout implements View.OnClickListe
             TypedArray arr = context.obtainStyledAttributes(attrs, R.styleable.SmartLoadingLayout, 0, 0);
             mContainerId = arr.getResourceId(R.styleable.SmartLoadingLayout_sll_content, mContainerId);
 
-            mLoadingView = mInflater.inflate(R.layout.smartloadinglayout_view_on_loading, null);
-            mEmptyView = mInflater.inflate(R.layout.smartloadinglayout_view_on_empty, null);
-            mErrorView = mInflater.inflate(R.layout.smartloadinglayout_view_on_error, null);
+            mLoadingView = mInflater.inflate(R.layout.smartloadinglayout_view_on_loading, this, false);
+            mEmptyView = mInflater.inflate(R.layout.smartloadinglayout_view_on_empty, this, false);
+            mErrorView = mInflater.inflate(R.layout.smartloadinglayout_view_on_error, this, false);
             addView(mLoadingView);
             addView(mEmptyView);
             addView(mErrorView);

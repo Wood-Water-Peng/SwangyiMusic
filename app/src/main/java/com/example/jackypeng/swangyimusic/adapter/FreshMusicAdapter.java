@@ -9,12 +9,16 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.example.jackypeng.swangyimusic.MainApplication;
 import com.example.jackypeng.swangyimusic.R;
 import com.example.jackypeng.swangyimusic.constants.ResponseErrorCode;
 import com.example.jackypeng.swangyimusic.rx.bean.DiyResultBean;
 import com.example.jackypeng.swangyimusic.rx.bean.FreshMusicResultBean;
 import com.example.jackypeng.swangyimusic.rx.bean.Mix_1_ResultBean;
 import com.example.jackypeng.swangyimusic.rx.bean.RadioResultBean;
+
+import java.util.List;
 
 import cn.bingoogolapple.bgabanner.BGABanner;
 
@@ -26,6 +30,7 @@ import cn.bingoogolapple.bgabanner.BGABanner;
 public class FreshMusicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private FreshMusicResultBean freshMusicResultData;
     private Context mContext;
+    private List<String> bannerUrl;
 
     public FreshMusicAdapter(Context context) {
         this.mContext = context;
@@ -47,10 +52,10 @@ public class FreshMusicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         if (freshMusicResultData == null || holder == null) return;
-        if (getItemViewType(position) == TYPE_4) {
+        if (getItemViewType(position) == TYPE_4 && bannerUrl != null) {
             CarouselHolder carouselHolder = (CarouselHolder) holder;
             carouselHolder.banner.setPageChangeDuration(2000);
-            carouselHolder.banner.setData(R.mipmap.first, R.mipmap.second, R.mipmap.third);
+            carouselHolder.banner.setData(bannerUrl, null);
         } else if (getItemViewType(position) == TYPE_1) {
             ColumnHolder columnHolder = (ColumnHolder) holder;
             RadioResultBean radioResultBean = freshMusicResultData.getRadioResultBean();
@@ -137,6 +142,13 @@ public class FreshMusicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
     }
 
+    public void setCarouselData(List<String> bannerUrl) {
+        if (bannerUrl != null && bannerUrl.size() > 0) {
+            this.bannerUrl = bannerUrl;
+            notifyDataSetChanged();
+        }
+    }
+
     private static class ColumnHolder extends RecyclerView.ViewHolder {
         ImageView columnIcon;
         TextView columnName;   //栏目名称
@@ -149,7 +161,6 @@ public class FreshMusicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             columnName = (TextView) itemView.findViewById(R.id.item_fresh_music_column_name);
             more = (TextView) itemView.findViewById(R.id.item_fresh_music_column_more);
             columnList = (RecyclerView) itemView.findViewById(R.id.item_fresh_music_column_recycle_view);
-            columnList.setHasFixedSize(true);
         }
     }
 
@@ -160,6 +171,14 @@ public class FreshMusicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         public CarouselHolder(View itemView) {
             super(itemView);
             banner = (BGABanner) itemView.findViewById(R.id.item_fresh_music_carousel_holder_banner);
+            banner.setAdapter(new BGABanner.Adapter<ImageView, String>() {
+                @Override
+                public void fillBannerItem(BGABanner banner, ImageView itemView, String model, int position) {
+                    Glide.with(MainApplication.getAppContext())
+                            .load(model)
+                            .into(itemView);
+                }
+            });
         }
     }
 

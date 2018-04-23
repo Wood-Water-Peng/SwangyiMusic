@@ -42,7 +42,6 @@ public class LocalMusicActivity extends BaseActivity {
     }
 
     private void init() {
-        initBottomFragment();
         final ArrayList<String> titles = new ArrayList<>();
         titles.add("单曲");
         titles.add("歌手");
@@ -82,12 +81,6 @@ public class LocalMusicActivity extends BaseActivity {
         slidingTabLayout.setViewPager(viewPager);
     }
 
-    private void initBottomFragment() {
-        BottomControllFragment bottomControllFragment = new BottomControllFragment();
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.activity_local_bottom_controller, bottomControllFragment).commit();
-    }
-
     @Override
     protected BaseView getViewImpl() {
         return null;
@@ -106,5 +99,10 @@ public class LocalMusicActivity extends BaseActivity {
     @Override
     protected int getLayoutId() {
         return R.layout.activity_local_music;
+    }
+
+    @Override
+    protected boolean hasBottomController() {
+        return true;
     }
 }

@@ -22,13 +22,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
-            android:fitsSystemWindows="true"
             android:background="@android:color/transparent"
+            android:fitsSystemWindows="true"
             android:minHeight="?attr/actionBarSize"
-            android:theme="@style/Theme.AppCompat"
-            android:titleTextColor="@color/white_text"
             android:subtitleTextColor="@color/white_text"
+            android:theme="@style/Theme.AppCompat"
             android:titleTextAppearance="@color/white_text"
+            android:titleTextColor="@color/white_text"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
         <RelativeLayout
@@ -63,25 +63,78 @@
                 android:transformPivotX="15.1dp"
                 android:transformPivotY="15.1dp" />
 
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerInParent="true">
+
+                <include layout="@layout/item_play_detail_bottom_like_download" />
+            </FrameLayout>
+
         </RelativeLayout>
 
         <LinearLayout
             android:id="@+id/activity_play_detail_lrc_container"
             android:layout_width="match_parent"
-            android:layout_height="390dp"
+            android:layout_height="410dp"
             android:layout_below="@+id/toolbar"
+            android:background="@color/colorAccent"
             android:orientation="vertical">
 
-            <com.example.jackypeng.swangyimusic.lrc.LrcView
-                android:id="@+id/activity_play_detail_lrc_view"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="390dp"
-                android:layout_marginTop="10dp" />
+                android:layout_height="30dp">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="20dp"
+                    android:src="@mipmap/play_icn_speaker" />
+
+                <SeekBar
+                    android:id="@+id/volume_seek"
+                    style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginRight="40dp"
+                    android:focusable="true"
+                    android:maxHeight="2dp"
+                    android:minHeight="2dp"
+                    android:progress="30"
+                    android:progressDrawable="@drawable/volume_seekbar"
+                    android:thumb="@mipmap/play_volumebar_btn"
+                    android:thumbOffset="3.0dip" />
+
+            </LinearLayout>
+
+            <com.example.jackypeng.swangyimusic.ui.widget.SmartLoadingLayout
+                android:id="@+id/activity_play_detail_smart_loading_lrc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:sll_content="@+id/activity_play_detail_lrc_view">
+
+                <com.example.jackypeng.swangyimusic.lrc.LrcView
+                    android:id="@+id/activity_play_detail_lrc_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="390dp"
+                    android:background="@color/colorPrimary"
+                    android:layout_marginTop="10dp" />
+            </com.example.jackypeng.swangyimusic.ui.widget.SmartLoadingLayout>
         </LinearLayout>
 
-        <include
-            android:id="@+id/bottom_controller"
-            layout="@layout/item_activity_play_detail_bottom_controller" />
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true">
+
+            <include
+                android:id="@+id/bottom_controller"
+                layout="@layout/item_activity_play_detail_bottom_controller" />
+        </FrameLayout>
     </RelativeLayout>
 
 </FrameLayout>

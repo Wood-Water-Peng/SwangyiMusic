@@ -25,7 +25,12 @@ import com.example.jackypeng.swangyimusic.constants.BroadcastConstants;
 import com.example.jackypeng.swangyimusic.constants.PlayingMusicStatusConstants;
 import com.example.jackypeng.swangyimusic.constants.SpConstants;
 import com.example.jackypeng.swangyimusic.rx.api.NetApi;
+import com.example.jackypeng.swangyimusic.rx.bean.PlayUrlBean;
+import com.example.jackypeng.swangyimusic.rx.bean.PlayingLrcBean;
 import com.example.jackypeng.swangyimusic.rx.bean.SongDetailResultBean;
+import com.example.jackypeng.swangyimusic.rx.contract.MusicUrlContract;
+import com.example.jackypeng.swangyimusic.rx.model.PlayingMusicInfoModel;
+import com.example.jackypeng.swangyimusic.rx.presenter.PlayingMusicInfoPresenter;
 import com.example.jackypeng.swangyimusic.ui.activity.PlayDetailActivity;
 import com.example.jackypeng.swangyimusic.util.AESTools;
 import com.example.jackypeng.swangyimusic.util.NetUtil;
@@ -54,7 +59,7 @@ import java.util.Map;
  * 1.返回该专辑的播放列表
  */
 
-public class MediaService extends Service {
+public class MediaService extends Service implements MusicUrlContract.View {
     private static final String TAG = "MediaService";
     public static final int PLAY_CURRENT_SONG = 1;   //播放当前音乐
     public static final int PAUSE_CURRENT_SONG = 2;  //暂停当前音乐
@@ -78,6 +83,7 @@ public class MediaService extends Service {
      */
     private String[] musicIds = new String[0];    //播放队列中所有歌曲的id
     private HashMap<String, AlbumListItemTrack> musicDetailMap = new HashMap<>();  //id和歌曲详情的映射
+    private PlayingMusicInfoPresenter mPrensenter;
 
     //保存单首歌的信息
     public void savePlayingSongInfo() {
@@ -157,11 +163,8 @@ public class MediaService extends Service {
         @Override
         public String getSongLrc() throws RemoteException {
 //            Log.i(TAG, "---getSongLrc---:" + curPlayingSong.toString());
-            if (curSongTrack == null) {
-                return null;
-            } else {
-                return curSongTrack.getLrc();
-            }
+            mPrensenter.getPlayingMusicLrc(curSongTrack.getSongId());
+            return "lrc";
         }
 
         @Override
@@ -266,6 +269,7 @@ public class MediaService extends Service {
 
         @Override
         public String getLatestSongLrc() throws RemoteException {
+            requestMusicLrc(curSongTrack.getSongId());
             return SharePreferenceUtil.readString(SpConstants.LATEST_PLAYING_SONG_INFO, SpConstants.LATEST_PLAYING_SONG_LRC);
         }
 
@@ -307,6 +311,8 @@ public class MediaService extends Service {
                     musicDetailMap.put(musicIds[i], songListTrack.get(i));
                 }
             }
+        } else {
+            Log.i(TAG, "初始化curSongTrack==null");
         }
 
     }
@@ -339,41 +345,35 @@ public class MediaService extends Service {
      *               音乐的url可以根据id拼接
      */
     private void playNetSong(String songId) {
-        long timeMillis = System.currentTimeMillis();
-        String str = "songid=" + songId + "&ts=" + timeMillis;
-        String e = AESTools.encrpty(str);
-        StringBuilder builder = new StringBuilder(NetApi.BASE_URL + NetApi.GET_SONG_DETAIL);
-        builder.append("&")
-                .append(str)
-                .append("&e=")
-                .append(e);
-        Log.i(TAG, "request_url:" + builder.toString());
-        NetUtil.getInstance().fetchData(builder.toString(), new Callback() {
-            @Override
-            public void onFailure(Request request, IOException e) {
-                sendErrorSongBroadcast();
-            }
-
-            @Override
-            public void onResponse(Response response) throws IOException {
-                String result = response.body().string();
-                Log.i(TAG, "response:" + result);
-                final SongDetailResultBean resultBean = JSONObject.parseObject(result, SongDetailResultBean.class);
-                if (resultBean == null) {
-                    sendErrorSongBroadcast();
-                    mPlayer.mCurrentMediaPlayer.reset();
-                    return;
-                }
-                curSongTrack.setLrc(resultBean.getSonginfo().getLrclink());
-                //将歌曲信息保存起来
-                mPlayer.playNetSong(resultBean.getSongurl().getUrl().get(0).getShow_link());
-            }
-        });
+        /**
+         * 结束上一首的播放
+         */
+        mPlayer.mCurrentMediaPlayer.reset();
+        sendFinishLastMusicBroadcast();
+        /**
+         * 告知接受者，尝试播放新的音乐，暂停就音乐的动画，跳转到新音乐界面
+         */
+        if (mPrensenter == null) {
+            mPrensenter = new PlayingMusicInfoPresenter();
+            mPrensenter.attachModel(new PlayingMusicInfoModel());
+            mPrensenter.attachView(this);
+        }
+        mPrensenter.getPlayingMusicUrl(songId);
     }
 
+    private void requestMusicLrc(String id) {
+        Log.i(TAG, "---requestMusicLrc---");
+        if (mPrensenter == null) {
+            mPrensenter = new PlayingMusicInfoPresenter();
+            mPrensenter.attachModel(new PlayingMusicInfoModel());
+            mPrensenter.attachView(this);
+        }
+        mPrensenter.getPlayingMusicLrc(id);
+    }
 
     //播放歌曲出错
     private void sendErrorSongBroadcast() {
+        Log.i(TAG, "---sendErrorSongBroadcast---");
         Intent intent = new Intent(BroadcastConstants.ERROR_PLAYSONG);
         Bundle bundle = new Bundle();
         bundle.putParcelable("cur_song_track", curSongTrack);
@@ -390,6 +390,7 @@ public class MediaService extends Service {
 
     //暂停歌曲
     private void sendPauseSongBroadcast() {
+        Log.i(TAG, "---sendPlayingStartBroadcast---");
         curSongTrack.setStatus(PlayingMusicStatusConstants.PAUSING);
         Intent intent = new Intent(BroadcastConstants.PAUSE_PLAY_SONG);
         Bundle bundle = new Bundle();
@@ -399,7 +400,7 @@ public class MediaService extends Service {
 
     //歌曲开始播放
     private void sendPlayingStartBroadcast() {
-        Log.i(TAG, "---sendPlayingStatusBroadcast---:" + curSongTrack.getCur_duration());
+        Log.i(TAG, "---sendPlayingStartBroadcast---");
         curSongTrack.setStatus(PlayingMusicStatusConstants.PLAYING);
         Intent intent = new Intent(BroadcastConstants.START_PLAY_SONG);
         Bundle bundle = new Bundle();
@@ -410,9 +411,19 @@ public class MediaService extends Service {
 
     //歌曲重新开始播放
     private void sendPlayingResumeBroadcast() {
-        Log.i(TAG, "---sendPlayingStatusBroadcast---:" + curSongTrack.getCur_duration());
+        Log.i(TAG, "---sendPlayingResumeBroadcast---");
         curSongTrack.setStatus(PlayingMusicStatusConstants.PLAYING);
         Intent intent = new Intent(BroadcastConstants.RESUME_PLAY_SONG);
+        Bundle bundle = new Bundle();
+        bundle.putParcelable("cur_song_track", curSongTrack);
+        sendBroadcast(intent.putExtras(bundle));
+//        RecentPlayManager.getInstance().insertInfo(new RecentPlayBean(curSongTrack.getSongId(), System.currentTimeMillis()));
+    }
+
+    //结束上一首歌的播放
+    private void sendFinishLastMusicBroadcast() {
+        Log.i(TAG, "---sendFinishLastMusicBroadcast---");
+        Intent intent = new Intent(BroadcastConstants.FINISH_LAST_MUSIC);
         Bundle bundle = new Bundle();
         bundle.putParcelable("cur_song_track", curSongTrack);
         sendBroadcast(intent.putExtras(bundle));
@@ -428,6 +439,72 @@ public class MediaService extends Service {
             bundle.putParcelable("cur_song_track", curSongTrack);
             sendBroadcast(intent.putExtras(bundle));
         }
+    }
+
+    //获得歌词广播
+    private void sendPlayingSongLrcBroadcast(String lrc) {
+        Log.i(TAG, "---sendPlayingSongLrcBroadcast---");
+        curSongTrack.setLrc(lrc);
+        Intent intent = new Intent(BroadcastConstants.PLAYSONG_LRC);
+        Bundle bundle = new Bundle();
+        bundle.putParcelable("cur_song_track", curSongTrack);
+        sendBroadcast(intent.putExtras(bundle));
+    }
+
+    @Override
+    public void showErrorWithStatus(String msg) {
+        Log.i(TAG, "---showErrorWithStatus---:" + msg);
+        sendErrorSongBroadcast();
+        mPlayer.mCurrentMediaPlayer.reset();
+    }
+
+    @Override
+    public void getPlayingMusicUrlView(PlayUrlBean resultBean) {
+        Log.i(TAG, "---getPlayingMusicUrlView---:" + resultBean);
+        if (resultBean == null) {
+            sendErrorSongBroadcast();
+            mPlayer.mCurrentMediaPlayer.reset();
+            return;
+        }
+        //curSongTrack.setLrc(resultBean.getSonginfo().getLrclink());
+        //将歌曲信息保存起来
+        mPlayer.playNetSong(resultBean.getData().get(0).getUrl());
+    }
+
+    @Override
+    public void getPlayingMusicLrcView(PlayingLrcBean resultBean) {
+        Log.i(TAG, "---getPlayingMusicLrcView---:" + resultBean);
+        if (resultBean != null) {
+            sendPlayingSongLrcBroadcast(resultBean.getLrc().getLyric());
+        } else {
+            sendGetMusicLrcErrorBroadcast("解析数据出错");
+        }
+    }
+
+    //加载歌曲url信息出错
+    private void sendGetMusicUrlErrorBroadcast(String msg) {
+        Log.i(TAG, "---sendGetMusicUrlErrorBroadcast---");
+        Intent intent = new Intent(BroadcastConstants.ERROR_LOADING_MUSIC_URL);
+        Bundle bundle = new Bundle();
+        sendBroadcast(intent.putExtras(bundle));
+    }
+
+    //加载歌曲lrc信息出错
+    private void sendGetMusicLrcErrorBroadcast(String msg) {
+        Log.i(TAG, "---sendGetMusicLrcErrorBroadcast---");
+        Intent intent = new Intent(BroadcastConstants.ERROR_LOADING_MUSIC_LRC);
+        Bundle bundle = new Bundle();
+        sendBroadcast(intent.putExtras(bundle));
+    }
+
+    @Override
+    public void getPlayingMusicUrlError(String msg) {
+        sendGetMusicUrlErrorBroadcast(msg);
+    }
+
+    @Override
+    public void getPlayingMusicLrcError(String msg) {
+        sendGetMusicLrcErrorBroadcast(msg);
     }
 
 
@@ -533,6 +610,7 @@ public class MediaService extends Service {
         public void stop() {
             mCurrentMediaPlayer.stop();
         }
+
 
         @Override
         public void onPrepared(MediaPlayer mp) {

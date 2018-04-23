@@ -35,11 +35,10 @@ public class RoundFragment extends BaseFragment {
 
     public void setRotatePending(boolean shouldDoRotate) {
         Bundle bundle = getArguments();
-        if (bundle != null) {
-            bundle.putBoolean("shouldDoRotate", shouldDoRotate);
-        } else {
+        if (bundle == null) {
             bundle = new Bundle();
         }
+        bundle.putBoolean("shouldDoRotate", shouldDoRotate);
         setArguments(bundle);
     }
 

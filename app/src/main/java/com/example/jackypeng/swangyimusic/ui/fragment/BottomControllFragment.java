@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -57,7 +58,6 @@ public class BottomControllFragment extends Fragment {
     ImageView iv_play_next;  //下一首
     @BindView(R.id.fragment_bottom_controller_progress_bar)
     ProgressBar progressBar;  //进度条
-    private MediaAidlInterface playerService;
 
     @OnClick(R.id.fragment_bottom_controller_play_pause)
     public void play_pause_music() {
@@ -153,6 +153,8 @@ public class BottomControllFragment extends Fragment {
                     playing_song_track = bundle.getParcelable("cur_song_track");
                     updateResumeTrack();
                 }
+            } else if (action.equals(BroadcastConstants.ERROR_PLAYSONG)) {
+                ToastUtil.getInstance().toast("播放出错");
             }
         }
     }
@@ -171,6 +173,7 @@ public class BottomControllFragment extends Fragment {
         filter.addAction(BroadcastConstants.UPDATE_PLAYING_PROGRESS);
         filter.addAction(BroadcastConstants.PAUSE_PLAY_SONG);
         filter.addAction(BroadcastConstants.RESUME_PLAY_SONG);
+        filter.addAction(BroadcastConstants.ERROR_PLAYSONG);
         getContext().registerReceiver(floatingViewReceiver, filter);
     }
 
@@ -180,43 +183,24 @@ public class BottomControllFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_bottom_controller, container, false);
         unbinder = ButterKnife.bind(this, rootView);
         //通过服务获取到最新的播放信息
-        playerService = MusicPlayer.getInstance().getPlayerService();
-        if (playerService == null) {
-            bindToService();
-        } else {
-            Log.i(TAG, "---获得playerService---");
-            try {
-                playing_song_track = playerService.getPlayingSongInfo();
-                initTrack();
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-        }
-        return rootView;
-    }
+        new AsyncTask<Void, Void, Void>() {
 
-    private void bindToService() {
-        Log.i(TAG, "---bindToService---");
-        Intent intent = new Intent(MainApplication.getAppContext(), MediaService.class);
-        MainApplication.getAppContext().startService(intent);
-        MainApplication.getAppContext().bindService(intent, new ServiceConnection() {
             @Override
-            public void onServiceConnected(ComponentName name, IBinder service) {
-                //该方法执行在主线程
-                playerService = MediaAidlInterface.Stub.asInterface(service);
+            protected Void doInBackground(Void... params) {
                 try {
-                    playing_song_track = playerService.getPlayingSongInfo();
-                    initTrack();
+                    playing_song_track = MusicPlayer.getInstance().getPlayingSongTrack();
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
+                return null;
             }
 
             @Override
-            public void onServiceDisconnected(ComponentName name) {
-
+            protected void onPostExecute(Void aVoid) {
+                initTrack();
             }
-        }, Context.BIND_AUTO_CREATE);
+        }.execute();
+        return rootView;
     }
 
     private void initTrack() {

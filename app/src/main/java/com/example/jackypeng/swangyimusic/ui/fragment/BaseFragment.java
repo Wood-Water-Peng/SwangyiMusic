@@ -47,7 +47,7 @@ public abstract class BaseFragment<M extends BaseModel, P extends BasePresenter>
         }
     }
 
-    protected void lazyFetchData(){
+    public void lazyFetchData(){
 
     };
 

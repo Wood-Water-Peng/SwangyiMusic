@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="330dp"
+    android:layout_height="340dp"
     android:orientation="vertical">
 
     <RelativeLayout
@@ -36,8 +36,7 @@
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/item_fresh_music_column_recycle_view"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
         />
 </LinearLayout>

@@ -1,5 +1,6 @@
 package com.example.jackypeng.swangyimusic.rx.model;
 
+import com.alibaba.fastjson.JSONObject;
 import com.example.jackypeng.swangyimusic.MainApplication;
 import com.example.jackypeng.swangyimusic.rx.RetrofitUtil;
 import com.example.jackypeng.swangyimusic.rx.api.NewMusicApi;
@@ -19,6 +20,15 @@ public class FreshMusicModel implements BaseModel {
                 .getRetrofitClient()
                 .builder(NewMusicApi.class)
                 .getFreshMusic()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
+
+    public Observable<JSONObject> getCarouselDetail(String num) {
+        return RetrofitUtil.getInstance(MainApplication.getAppContext())
+                .getRetrofitClient()
+                .builder(NewMusicApi.class)
+                .getCarouselDetail(num)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
     }

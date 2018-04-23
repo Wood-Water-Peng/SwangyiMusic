@@ -12,6 +12,8 @@
     <color name="theme_color_primary">#d20000</color>
 
     <color name="text_color">#FF000000</color>
+    <color name="light_black">#33000000</color>
+    <color name="black">#FF000000</color>
     <color name="test_color">#696969</color>
 
     <color name="white_text">#fafafa</color>
@@ -25,7 +27,14 @@
 
     <color name="small_font">#FF757575</color>
 
-    <color name="light_gray">#c6c6c6</color>
+    <color name="light_gray">#ffc6c6c6</color>
+
+    <color name="lighter_gray">#88c6c6c6</color>
 
     <color name="general_green">#66cc99</color>
+
+    <color name="activity_playing_list_detail_bg">#F36E81</color>
+
+    <color name="general_blue_lighter">#88007de3</color>
+
 </resources>

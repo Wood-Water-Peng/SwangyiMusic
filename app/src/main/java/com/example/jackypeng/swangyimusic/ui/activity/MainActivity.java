@@ -1,44 +1,37 @@
 package com.example.jackypeng.swangyimusic.ui.activity;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.ObjectAnimator;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
+import android.view.Gravity;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import com.bumptech.glide.Glide;
 import com.example.jackypeng.swangyimusic.R;
-import com.example.jackypeng.swangyimusic.service.MusicPlayer;
+import com.example.jackypeng.swangyimusic.rx.model.BaseModel;
+import com.example.jackypeng.swangyimusic.rx.presenter.BasePresenter;
+import com.example.jackypeng.swangyimusic.rx.view.rxView.BaseView;
 import com.example.jackypeng.swangyimusic.ui.fragment.BaseFragment;
 import com.example.jackypeng.swangyimusic.ui.fragment.BottomControllFragment;
 import com.example.jackypeng.swangyimusic.ui.fragment.FriendFragment;
 import com.example.jackypeng.swangyimusic.ui.fragment.HomeFragment;
+import com.example.jackypeng.swangyimusic.ui.fragment.LeftMenuFragment;
 import com.example.jackypeng.swangyimusic.ui.fragment.MusicFragment;
-import com.example.jackypeng.swangyimusic.util.ToastUtil;
-import com.example.jackypeng.swangyimusic.util.UIUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
-import butterknife.ButterKnife;
 import butterknife.OnClick;
-import butterknife.Unbinder;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     private static final String TAG = "MainActivity";
     public static final String PLAYING_QUEUE_CONTROLLER = "playing_queue_controller";
-    private Unbinder unbinder;
 
     @BindView(R.id.main_viewpager)
     ViewPager viewPager;
@@ -46,8 +39,14 @@ public class MainActivity extends AppCompatActivity {
     ImageView bar_music;
     @BindView(R.id.bar_home)
     ImageView bar_home;
+    @BindView(R.id.bar_menu)
+    ImageView bar_menu;
     @BindView(R.id.bar_friends)
     ImageView bar_friends;
+    @BindView(R.id.activity_main_drawer)
+    DrawerLayout drawerLayout;
+    @BindView(R.id.activity_main_bottom_controller)
+    FrameLayout bottom_frameLayout;
 
     @OnClick(R.id.bar_friends)
     public void switch2friends() {
@@ -64,13 +63,18 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setCurrentItem(0);
     }
 
+    @OnClick(R.id.bar_menu)
+    public void openLeftMenu() {
+        drawerLayout.openDrawer(Gravity.LEFT);
+    }
+
 
     private List<ImageView> tabs = new ArrayList<>();
 
-
     private void init() {
+        initBottomController();
+        initLeftFragment();
         initTabs();
-        initBottomFragment();
         viewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int position) {
@@ -115,11 +119,16 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setCurrentItem(1);
     }
 
-    private void initBottomFragment() {
-        BottomControllFragment bottomControllFragment = new BottomControllFragment();
+    private void initLeftFragment() {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.activity_main_bottom_controller, bottomControllFragment).commit();
+        transaction.add(R.id.activity_main_left_menu, new LeftMenuFragment()).commitAllowingStateLoss();
     }
+
+    private void initBottomController() {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.add(R.id.activity_main_bottom_controller, new BottomControllFragment()).commitAllowingStateLoss();
+    }
+
 
     private void initTabs() {
         tabs.add(bar_music);    //1
@@ -137,43 +146,45 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        unbinder = ButterKnife.bind(this);
-        MusicPlayer.getInstance().init();    //启动播放服务
+    protected void onInitView(Bundle savedInstanceState) {
         init();
+//        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+//        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+//        getWindow().setStatusBarColor(getResources().getColor(R.color.light_gray));
+//        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        drawerLayout.closeDrawers();
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        Log.i(TAG, "onStart_width:" + viewPager.getMeasuredWidth());
-    }
-
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
-
-    @Override
-    protected void onStop() {
-        super.onStop();
+    protected int getNavBarStatus() {
+        return HIDE_NAV_BAR;
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        Log.i(TAG, "onResume_width:" + viewPager.getMeasuredWidth());
+    protected int getStatusBarStatus() {
+        return TRANS_STATUS_BAR;
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        unbinder.unbind();
+    protected BaseView getViewImpl() {
+        return null;
     }
+
+    @Override
+    protected BaseModel getModel() {
+        return null;
+    }
+
+    @Override
+    protected BasePresenter getPresenter() {
+        return null;
+    }
+
+    @Override
+    protected int getLayoutId() {
+        return R.layout.activity_main;
+    }
+
 }

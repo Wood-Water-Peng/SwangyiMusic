@@ -17,6 +17,18 @@ public class BroadcastConstants {
     public static final String BUFFERING_PLAYSONG = "buffering_song";
     //播放歌曲出错
     public static final String ERROR_PLAYSONG = "error_play_song";
+    //歌词信息
+    public static final String PLAYSONG_LRC = "playing_song_lrc";
+
+    //加载歌曲url出错(网络错误)
+    public static final String ERROR_LOADING_MUSIC_URL = "error_loading_music_url";
+
+    //加载歌曲lrc出错(网络错误)
+    public static final String ERROR_LOADING_MUSIC_LRC = "error_loading_music_lrc";
+
+
+    //结束上一首音乐的播放(切换音乐播放时调用)
+    public static final String FINISH_LAST_MUSIC = "finish_last_music";
 
 
 }

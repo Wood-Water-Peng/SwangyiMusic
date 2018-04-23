@@ -78,6 +78,11 @@ public class AlbumDetailActivity extends BaseActivity<AlbumDetailModel, AlbumDet
     }
 
     @Override
+    protected boolean hasBottomController() {
+        return true;
+    }
+
+    @Override
     public void doFetchAlbumDetail(AlbumDetailBean albumDetailBean) {
         AlbumInfoBean albuminfo = albumDetailBean.getAlbuminfo();
         Glide.with(this).load(albumPath).into(album_cover);

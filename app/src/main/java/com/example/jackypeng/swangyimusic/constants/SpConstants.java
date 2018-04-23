@@ -17,4 +17,5 @@ public class SpConstants {
     public static final String LATEST_PLAYING_SONG_AUTHOR_NAME = "latest_playing_song_author_name";  //作者名称
     public static final String LATEST_PLAYING_SONG_PIC_SMALL_URL = "latest_playing_song_pic_small_url";  //小图标
     public static final String LATEST_PLAYING_SONG_PIC_BIG_URL = "latest_playing_song_pic_big_url";  //大图标
+    public static final String MUSIC_LRC_INFO = "music_lrc_info";  //音乐歌词文件
 }
