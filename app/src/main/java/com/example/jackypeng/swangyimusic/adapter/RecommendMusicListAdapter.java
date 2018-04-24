@@ -49,6 +49,7 @@ public class RecommendMusicListAdapter extends RecyclerView.Adapter<RecyclerView
         final RecommendListResult.RecommendListItem item = recommendListItems.get(position);
         RecommendMusicListColumnHolder columnHolder = (RecommendMusicListColumnHolder) holder;
         columnHolder.album_name.setText(item.getName());
+        columnHolder.tv_listener_count.setText(item.getPlayCount());
         Glide.with(mContext).load(item.getPicUrl()).into(columnHolder.icon);
 
         columnHolder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -84,12 +85,14 @@ public class RecommendMusicListAdapter extends RecyclerView.Adapter<RecyclerView
         ImageView icon;
         TextView album_name;
         TextView artist_name;
+        TextView tv_listener_count;
 
         public RecommendMusicListColumnHolder(View itemView) {
             super(itemView);
             icon = (ImageView) itemView.findViewById(R.id.item_recommend_music_column_item_icon);
             album_name = (TextView) itemView.findViewById(R.id.item_recommend_music_column_item_icon_album_name);
             artist_name = (TextView) itemView.findViewById(R.id.item_recommend_music_column_item_icon_artist_name);
+            tv_listener_count = (TextView) itemView.findViewById(R.id.item_recommend_music_column_item_tv_listener_count);
         }
     }
 }

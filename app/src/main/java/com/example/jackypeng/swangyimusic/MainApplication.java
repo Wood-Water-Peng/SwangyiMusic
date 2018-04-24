@@ -1,12 +1,21 @@
 package com.example.jackypeng.swangyimusic;
 
 import android.app.Application;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcelable;
 
+import com.example.jackypeng.swangyimusic.constants.BroadcastConstants;
 import com.example.jackypeng.swangyimusic.rx.RetrofitUtil;
 import com.example.jackypeng.swangyimusic.rx.api.NetApi;
+import com.example.jackypeng.swangyimusic.service.AlbumListItemTrack;
+import com.example.jackypeng.swangyimusic.ui.activity.MainActivity;
 import com.example.jackypeng.swangyimusic.util.QueryUtil;
+import com.example.jackypeng.swangyimusic.util.ToastUtil;
 import com.facebook.drawee.backends.pipeline.Fresco;
 
 /**
@@ -32,6 +41,8 @@ public class MainApplication extends Application {
         initOkHttpUtils();
     }
 
+
+
     private void initOkHttpUtils() {
         /**
          *  网络配置
@@ -45,4 +56,6 @@ public class MainApplication extends Application {
     public static Handler getMainThreadHandler() {
         return sMainThreadHandler;
     }
+
+
 }

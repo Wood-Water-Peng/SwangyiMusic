@@ -1,12 +1,15 @@
 package com.example.jackypeng.swangyimusic.service;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -18,28 +21,23 @@ import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.example.jackypeng.swangyimusic.MainApplication;
 import com.example.jackypeng.swangyimusic.MediaAidlInterface;
 import com.example.jackypeng.swangyimusic.constants.BroadcastConstants;
 import com.example.jackypeng.swangyimusic.constants.PlayingMusicStatusConstants;
 import com.example.jackypeng.swangyimusic.constants.SpConstants;
-import com.example.jackypeng.swangyimusic.rx.api.NetApi;
 import com.example.jackypeng.swangyimusic.rx.bean.PlayUrlBean;
 import com.example.jackypeng.swangyimusic.rx.bean.PlayingLrcBean;
-import com.example.jackypeng.swangyimusic.rx.bean.SongDetailResultBean;
 import com.example.jackypeng.swangyimusic.rx.contract.MusicUrlContract;
 import com.example.jackypeng.swangyimusic.rx.model.PlayingMusicInfoModel;
 import com.example.jackypeng.swangyimusic.rx.presenter.PlayingMusicInfoPresenter;
+import com.example.jackypeng.swangyimusic.ui.activity.MainActivity;
 import com.example.jackypeng.swangyimusic.ui.activity.PlayDetailActivity;
-import com.example.jackypeng.swangyimusic.util.AESTools;
-import com.example.jackypeng.swangyimusic.util.NetUtil;
+import com.example.jackypeng.swangyimusic.util.NotiUtil;
 import com.example.jackypeng.swangyimusic.util.SharePreferenceUtil;
-import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -314,6 +312,7 @@ public class MediaService extends Service implements MusicUrlContract.View {
         } else {
             Log.i(TAG, "初始化curSongTrack==null");
         }
+        initReceiver();
 
     }
 
@@ -359,6 +358,12 @@ public class MediaService extends Service implements MusicUrlContract.View {
             mPrensenter.attachView(this);
         }
         mPrensenter.getPlayingMusicUrl(songId);
+        showPlayingNotification();
+    }
+
+    //显示通知栏
+    private void showPlayingNotification() {
+        NotiUtil.getInstance().showNotification(MainApplication.getAppContext(), curSongTrack);
     }
 
     private void requestMusicLrc(String id) {
@@ -396,6 +401,7 @@ public class MediaService extends Service implements MusicUrlContract.View {
         Bundle bundle = new Bundle();
         bundle.putParcelable("cur_song_track", curSongTrack);
         sendBroadcast(intent.putExtras(bundle));
+        updateNotifStatus(curSongTrack);
     }
 
     //歌曲开始播放
@@ -406,7 +412,17 @@ public class MediaService extends Service implements MusicUrlContract.View {
         Bundle bundle = new Bundle();
         bundle.putParcelable("cur_song_track", curSongTrack);
         sendBroadcast(intent.putExtras(bundle));
-//        RecentPlayManager.getInstance().insertInfo(new RecentPlayBean(curSongTrack.getSongId(), System.currentTimeMillis()));
+        updateNotifStatus(curSongTrack);
+    }
+
+
+    //更新通知栏界面
+    private void updateNotifStatus(AlbumListItemTrack curSongTrack) {
+        if (curSongTrack.getStatus() == PlayingMusicStatusConstants.PLAYING) {
+            NotiUtil.getInstance().updateNotification(this, curSongTrack, NotiUtil.STATUS_PLAYING);
+        } else if (curSongTrack.getStatus() == PlayingMusicStatusConstants.PAUSING) {
+            NotiUtil.getInstance().updateNotification(this, curSongTrack, NotiUtil.STATUS_PAUSED);
+        }
     }
 
     //歌曲重新开始播放
@@ -417,7 +433,7 @@ public class MediaService extends Service implements MusicUrlContract.View {
         Bundle bundle = new Bundle();
         bundle.putParcelable("cur_song_track", curSongTrack);
         sendBroadcast(intent.putExtras(bundle));
-//        RecentPlayManager.getInstance().insertInfo(new RecentPlayBean(curSongTrack.getSongId(), System.currentTimeMillis()));
+        updateNotifStatus(curSongTrack);
     }
 
     //结束上一首歌的播放
@@ -427,7 +443,6 @@ public class MediaService extends Service implements MusicUrlContract.View {
         Bundle bundle = new Bundle();
         bundle.putParcelable("cur_song_track", curSongTrack);
         sendBroadcast(intent.putExtras(bundle));
-//        RecentPlayManager.getInstance().insertInfo(new RecentPlayBean(curSongTrack.getSongId(), System.currentTimeMillis()));
     }
 
     //发送更新进度的广播
@@ -639,10 +654,79 @@ public class MediaService extends Service implements MusicUrlContract.View {
         }
     };
 
+    //响应通知栏的广播接收者
+    private PlayingSongStatusReceiver receiver = new PlayingSongStatusReceiver();
+
+    private void initReceiver() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BroadcastConstants.START_PLAY_DETAIL_ACTIVITY);
+        filter.addAction(BroadcastConstants.PLAY_CUR_MUSIC);
+        filter.addAction(BroadcastConstants.PLAY_PRE_MUSIC);
+        filter.addAction(BroadcastConstants.PLAY_NEXT_MUSIC);
+        filter.addAction(BroadcastConstants.PAUSE_CUR_MUSIC);
+        registerReceiver(receiver, filter);
+    }
+
+    private class PlayingSongStatusReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "---onReceive---:" + intent);
+            Log.i(TAG, "---onReceive___context---:" + context.getClass().getCanonicalName());
+            String action = intent.getAction();
+            switch (action) {
+                case BroadcastConstants.START_PLAY_DETAIL_ACTIVITY:
+                    skip2PlayDetailActivity();
+                    break;
+                case BroadcastConstants.PLAY_CUR_MUSIC:
+                    //play current music
+                    Log.i(TAG, "---play_cur_music---");
+                    if (curSongTrack.getStatus() == PlayingMusicStatusConstants.PAUSING) {
+                        resumeSong();
+                    }
+                    break;
+                case BroadcastConstants.PAUSE_CUR_MUSIC:
+                    //pause current music
+                    Log.i(TAG, "---pause_cur_music---");
+                    if (curSongTrack.getStatus() == PlayingMusicStatusConstants.PLAYING) {
+                        pauseSong();
+                    }
+                    break;
+            }
+        }
+    }
+
+    private void skip2PlayDetailActivity() {
+        collapseStatusBar(this);
+        Intent intent1 = new Intent(this, MainActivity.class);
+        intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        Intent intent2 = new Intent(this, PlayDetailActivity.class);
+        Intent[] intents = new Intent[2];
+        intents[0] = intent1;
+        intents[1] = intent2;
+        startActivities(intents);
+    }
+
+    public static void collapseStatusBar(Context context) {
+        try {
+            Object statusBarManager = context.getSystemService("statusbar");
+            Method collapse;
+
+            if (Build.VERSION.SDK_INT <= 16) {
+                collapse = statusBarManager.getClass().getMethod("collapse");
+            } else {
+                collapse = statusBarManager.getClass().getMethod("collapsePanels");
+            }
+            collapse.invoke(statusBarManager);
+        } catch (Exception localException) {
+            localException.printStackTrace();
+        }
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "MediaService-----onDestroy");
+        unregisterReceiver(receiver);
     }
 
 }

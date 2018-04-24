@@ -9,6 +9,7 @@ import android.os.RemoteException;
 
 import com.example.jackypeng.swangyimusic.MainApplication;
 import com.example.jackypeng.swangyimusic.MediaAidlInterface;
+import com.example.jackypeng.swangyimusic.util.UIUtil;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -37,14 +38,24 @@ public class MusicPlayer {
         return sMusicPlayer;
     }
 
+    public MediaAidlInterface getMediaService() {
+        if (playerService == null) {
+            bindToService();
+        }
+        return playerService;
+    }
+
     private MusicPlayer(Context context) {
         this.mContext = context;
         mConnectionBinderPoolCountDownLatch = new CountDownLatch(1);
         bindToService();
     }
 
-
+    //该方法不可以在主线程执行
     private void bindToService() {
+        if (UIUtil.isRunInUIThread()) {
+            throw new IllegalStateException("不可在主线程调用该方法");
+        }
         Intent intent = new Intent(mContext, MediaService.class);
         mContext.startService(intent);
         mContext.bindService(intent, new ServiceConnection() {

@@ -34,12 +34,29 @@ public interface DiscoverContract {
         //        独家放送
         void getExclusivePart(ExclusivePartResult resultBean);
 
+
+
+        //        轮播图
+        void getBannerError(String msg);
+
+        //        推荐歌单
+        void getRecommendListError(String msg);
+
+        //        推荐电台
+        void getRecommendRadioError(String msg);
+
+        //        推荐MV
+        void getRecommendMVError(String msg);
+
+        //        独家放送
+        void getExclusivePartError(String msg);
+
     }
 
     public interface Model extends BaseModel {
         Observable<BannerResultBean> getBanner(Context context);
 
-        Observable<RecommendListResult> getRecommendList(Context context,int limit);
+        Observable<RecommendListResult> getRecommendList(Context context, int limit);
 
         Observable<RecommendRadioResult> getRecommendRadio(Context context);
 

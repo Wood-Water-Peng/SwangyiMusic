@@ -1,6 +1,7 @@
 package com.example.jackypeng.swangyimusic.util;
 
 import android.os.Handler;
+import android.os.Looper;
 
 import com.example.jackypeng.swangyimusic.MainApplication;
 
@@ -25,5 +26,9 @@ public class UIUtil {
      */
     public static Handler getHandler() {
         return MainApplication.getMainThreadHandler();
+    }
+
+    public static boolean isRunInUIThread() {
+        return Looper.getMainLooper() == Looper.myLooper();
     }
 }

@@ -25,7 +25,7 @@ public class DiscoverPresenter extends DiscoverContract.Presenter {
 
             @Override
             public void onError(Throwable e) {
-               mView.showErrorWithStatus(e.getMessage());
+               mView.getBannerError(e.getMessage());
             }
 
             @Override
@@ -45,7 +45,7 @@ public class DiscoverPresenter extends DiscoverContract.Presenter {
 
             @Override
             public void onError(Throwable e) {
-                mView.showErrorWithStatus(e.getMessage());
+                mView.getRecommendListError(e.getMessage());
             }
 
             @Override
@@ -65,8 +65,7 @@ public class DiscoverPresenter extends DiscoverContract.Presenter {
 
             @Override
             public void onError(Throwable e) {
-                L.i(e.getMessage());
-                L.i(e.toString());
+                mView.getRecommendRadioError(e.getMessage());
             }
 
             @Override
@@ -86,7 +85,7 @@ public class DiscoverPresenter extends DiscoverContract.Presenter {
 
             @Override
             public void onError(Throwable e) {
-                mView.showErrorWithStatus(e.getMessage());
+                mView.getRecommendMVError(e.getMessage());
             }
 
             @Override
@@ -106,8 +105,7 @@ public class DiscoverPresenter extends DiscoverContract.Presenter {
 
             @Override
             public void onError(Throwable e) {
-                L.i(e.getMessage());
-                mView.showErrorWithStatus(e.getMessage());
+                mView.getExclusivePartError(e.getMessage());
             }
 
             @Override

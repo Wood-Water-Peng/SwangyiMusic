@@ -58,6 +58,7 @@ public class BottomControllFragment extends Fragment {
     ImageView iv_play_next;  //下一首
     @BindView(R.id.fragment_bottom_controller_progress_bar)
     ProgressBar progressBar;  //进度条
+    private MediaAidlInterface service;
 
     @OnClick(R.id.fragment_bottom_controller_play_pause)
     public void play_pause_music() {
@@ -182,22 +183,24 @@ public class BottomControllFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_bottom_controller, container, false);
         unbinder = ButterKnife.bind(this, rootView);
+
         //通过服务获取到最新的播放信息
         new AsyncTask<Void, Void, Void>() {
 
             @Override
             protected Void doInBackground(Void... params) {
-                try {
-                    playing_song_track = MusicPlayer.getInstance().getPlayingSongTrack();
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
+                service = MusicPlayer.getInstance().getMediaService();
                 return null;
             }
 
             @Override
             protected void onPostExecute(Void aVoid) {
-                initTrack();
+                try {
+                    playing_song_track = service.getPlayingSongInfo();
+                    initTrack();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             }
         }.execute();
         return rootView;

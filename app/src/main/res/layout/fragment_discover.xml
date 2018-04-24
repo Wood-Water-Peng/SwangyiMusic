@@ -4,16 +4,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.example.jackypeng.swangyimusic.ui.widget.SmartLoadingLayout
-        android:id="@+id/fragment_discover_music_smart_loading_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:sll_content="@+id/fragment_discover_music_recycle_view">
-
         <android.support.v7.widget.RecyclerView
             android:id="@+id/fragment_discover_music_recycle_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
+    <!--<com.example.jackypeng.swangyimusic.ui.widget.SmartLoadingLayout-->
+        <!--android:id="@+id/fragment_discover_music_smart_loading_layout"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--app:sll_content="@+id/fragment_discover_music_recycle_view">-->
 
-    </com.example.jackypeng.swangyimusic.ui.widget.SmartLoadingLayout>
+
+    <!--</com.example.jackypeng.swangyimusic.ui.widget.SmartLoadingLayout>-->
 </FrameLayout>

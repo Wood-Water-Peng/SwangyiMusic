@@ -31,4 +31,26 @@ public class BroadcastConstants {
     public static final String FINISH_LAST_MUSIC = "finish_last_music";
 
 
+    //加载轮播图数据
+    public static final String LOAD_BANNER = "load_banner";
+
+    //加载推荐歌单
+    public static final String LOAD_RECOMMEND_LIST = "load_recommend_list";
+
+    //加载独家放送
+    public static final String LOAD_EXCLUSIVE_PART = "load_exclusive_part";
+
+    //加载推荐电台
+    public static final String LOAD_RECOMMEND_RADIO = "load_recommend_radio";
+
+    //    ---------------------------------------------------   通知栏
+    //跳转到播放详情界面
+    public static final String START_PLAY_DETAIL_ACTIVITY = "start_play_detail_activity";
+
+
+    public static final String PLAY_CUR_MUSIC = "play_cur_music";
+    public static final String PAUSE_CUR_MUSIC = "pause_cur_music";
+    public static final String PLAY_PRE_MUSIC = "play_pre_music";
+    public static final String PLAY_NEXT_MUSIC = "play_next_music";
+
 }

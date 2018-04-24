@@ -77,7 +77,7 @@ public class MusicFragment extends BaseFragment {
 
     private void init() {
         final ArrayList<String> titles = new ArrayList<>();
-        titles.add("新曲");
+        titles.add(getResources().getString(R.string.fragment_discover_title));
         titles.add("歌单");
         titles.add("排行榜");
         viewPager.setOffscreenPageLimit(3);

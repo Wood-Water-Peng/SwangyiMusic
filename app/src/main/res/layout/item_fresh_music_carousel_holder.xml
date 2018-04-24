@@ -1,20 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="160dp">
 
-    <cn.bingoogolapple.bgabanner.BGABanner
-        android:id="@+id/item_fresh_music_carousel_holder_banner"
+    <com.example.jackypeng.swangyimusic.ui.widget.SmartLoadingLayout
+        android:id="@+id/item_fresh_music_carousel_holder_banner_sll"
         android:layout_width="match_parent"
-        android:layout_height="160dp"
-        app:banner_indicatorGravity="bottom|right"
-        app:banner_isNeedShowIndicatorOnOnlyOnePage="true"
-        app:banner_isNumberIndicator="true"
-        app:banner_numberIndicatorBackground="@drawable/shape_number_indicator_background"
-        app:banner_numberIndicatorTextColor="@android:color/white"
-        app:banner_numberIndicatorTextSize="10sp"
-        app:banner_pointAutoPlayAble="true"
-        app:banner_pointContainerBackground="@android:color/transparent"
-        app:banner_transitionEffect="depth" />
-</RelativeLayout>
+        android:layout_height="match_parent"
+        app:sll_content="@+id/item_fresh_music_carousel_holder_banner">
+
+        <cn.bingoogolapple.bgabanner.BGABanner
+            android:id="@+id/item_fresh_music_carousel_holder_banner"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:banner_indicatorGravity="bottom|right"
+            app:banner_isNeedShowIndicatorOnOnlyOnePage="true"
+            app:banner_isNumberIndicator="true"
+            app:banner_numberIndicatorBackground="@drawable/shape_number_indicator_background"
+            app:banner_numberIndicatorTextColor="@android:color/white"
+            app:banner_numberIndicatorTextSize="10sp"
+            app:banner_pointAutoPlayAble="true"
+            app:banner_pointContainerBackground="@android:color/transparent"
+            app:banner_transitionEffect="depth" />
+    </com.example.jackypeng.swangyimusic.ui.widget.SmartLoadingLayout>
+</FrameLayout>

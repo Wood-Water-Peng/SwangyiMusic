@@ -17,6 +17,7 @@ import com.example.jackypeng.swangyimusic.rx.contract.DiscoverContract;
 import com.example.jackypeng.swangyimusic.rx.model.DiscoverModel;
 import com.example.jackypeng.swangyimusic.rx.presenter.DiscoverPresenter;
 import com.example.jackypeng.swangyimusic.rx.view.rxView.BaseView;
+import com.example.jackypeng.swangyimusic.ui.itemDecoration.GridSpacingItemDecoration;
 import com.example.jackypeng.swangyimusic.ui.widget.SmartLoadingLayout;
 
 import butterknife.BindView;
@@ -29,25 +30,20 @@ public class DiscoverFragment extends BaseFragment<DiscoverContract.Model, Disco
 
     @BindView(R.id.fragment_discover_music_recycle_view)
     RecyclerView recyclerView;
-    @BindView(R.id.fragment_discover_music_smart_loading_layout)
-    SmartLoadingLayout smartLoadingLayout;
     private FragmentDiscoverAdapter discoverAdapter;
 
     @Override
     public void showErrorWithStatus(String msg) {
-        smartLoadingLayout.onError();
     }
 
     @Override
     public void getBanner(BannerResultBean resultBean) {
         discoverAdapter.setBanner(resultBean);
-        smartLoadingLayout.onSuccess();
     }
 
     @Override
     public void getRecommendList(RecommendListResult resultBean) {
         discoverAdapter.setRecommendList(resultBean);
-        smartLoadingLayout.onSuccess();
     }
 
     @Override
@@ -63,7 +59,31 @@ public class DiscoverFragment extends BaseFragment<DiscoverContract.Model, Disco
     @Override
     public void getExclusivePart(ExclusivePartResult resultBean) {
         discoverAdapter.setExclusivePart(resultBean);
-        smartLoadingLayout.onSuccess();
+    }
+
+    @Override
+    public void getBannerError(String msg) {
+        discoverAdapter.setBannerError(msg);
+    }
+
+    @Override
+    public void getRecommendListError(String msg) {
+
+    }
+
+    @Override
+    public void getRecommendRadioError(String msg) {
+
+    }
+
+    @Override
+    public void getRecommendMVError(String msg) {
+
+    }
+
+    @Override
+    public void getExclusivePartError(String msg) {
+
     }
 
     @Override
@@ -81,12 +101,13 @@ public class DiscoverFragment extends BaseFragment<DiscoverContract.Model, Disco
         discoverAdapter = new FragmentDiscoverAdapter(getContext());
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(discoverAdapter);
-        smartLoadingLayout.setOnReloadClicked(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                fetchData();
-            }
-        });
+        recyclerView.addItemDecoration(new GridSpacingItemDecoration(1, 15, true));
+//        smartLoadingLayout.setOnReloadClicked(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                fetchData();
+//            }
+//        });
     }
 
     @Override
@@ -95,7 +116,7 @@ public class DiscoverFragment extends BaseFragment<DiscoverContract.Model, Disco
     }
 
     public void fetchData() {
-        smartLoadingLayout.onLoading();
+//        smartLoadingLayout.onLoading();
         mPresenter.getBanner();
         mPresenter.getRecommendList(6);
 //        mPresenter.getRecommendMV();
