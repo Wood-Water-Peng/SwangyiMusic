@@ -31,7 +31,6 @@ dependencies {
     compile 'cn.bingoogolapple:bga-banner:2.1.5@aar'
     compile 'com.squareup.okhttp:okhttp:2.5.0'
     compile 'com.squareup.okhttp:okhttp-urlconnection:2.7.2'
-    compile 'com.facebook.fresco:fresco:0.13.0'
     compile 'com.orhanobut:logger:1.15'
     compile 'io.reactivex:rxjava:1.1.8'
     compile 'io.reactivex:rxandroid:1.2.1'
@@ -51,4 +50,5 @@ dependencies {
     compile 'org.greenrobot:eventbus:3.0.0'
     //歌词控件
     compile 'me.wcy:lrcview:2.0.1'
+    compile 'com.facebook.fresco:fresco:1.9.0'
 }

@@ -70,5 +70,11 @@ public class NetApi {
     //歌单详情
     public static final String PLAYING_LIST_DETAIL = "/playlist/detail";
 
+    //登录---手机
+    public static final String LOGIN = "/login/cellphone";
+
+    //获取用户歌单(需要登录)
+    public static final String GET_USER_PLAYLIST = "/user/playlist";
+
 
 }

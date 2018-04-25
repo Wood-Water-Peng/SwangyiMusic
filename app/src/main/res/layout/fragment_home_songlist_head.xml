@@ -36,11 +36,13 @@
 
     <ImageView
         android:id="@+id/fragment_home_songlist_head_menu_iv"
-        android:layout_width="wrap_content"
-        android:layout_height="25dp"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
         android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="20dp"
         android:paddingLeft="15dp"
         android:paddingRight="15dp"
-        android:src="@mipmap/list_icn_more" />
+        android:background="@mipmap/setting" />
 
 </RelativeLayout>

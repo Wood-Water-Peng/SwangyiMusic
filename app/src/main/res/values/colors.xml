@@ -37,4 +37,9 @@
 
     <color name="general_blue_lighter">#88007de3</color>
 
+    <color name="transparent">#00000000</color>
+
+    <!-- loading dialog background-->
+    <color name="loading_dialog_bg">#99000000</color>
+
 </resources>

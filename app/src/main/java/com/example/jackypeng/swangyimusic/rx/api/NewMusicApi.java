@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.example.jackypeng.swangyimusic.rx.bean.AlbumDetailBean;
 import com.example.jackypeng.swangyimusic.rx.bean.ArtistDetailInfo;
 import com.example.jackypeng.swangyimusic.rx.bean.FreshMusicBean;
+import com.example.jackypeng.swangyimusic.rx.bean.LoginResultBean;
 import com.example.jackypeng.swangyimusic.rx.bean.PlayUrlBean;
 import com.example.jackypeng.swangyimusic.rx.bean.PlayingLrcBean;
 import com.example.jackypeng.swangyimusic.rx.bean.RadioDetailResponseBean;
@@ -17,6 +18,7 @@ import com.example.jackypeng.swangyimusic.rx.bean.discover.RecommendRadioResult;
 import com.example.jackypeng.swangyimusic.rx.bean.playingListDetail.PlayingListDetailResult;
 import com.example.jackypeng.swangyimusic.rx.bean.radioDetail.RadioDetailResult;
 import com.example.jackypeng.swangyimusic.rx.bean.radioDetail.RadioProgramResult;
+import com.example.jackypeng.swangyimusic.rx.bean.user.UserPlayListBean;
 
 import retrofit2.http.GET;
 import retrofit2.http.Query;
@@ -34,6 +36,8 @@ import static com.example.jackypeng.swangyimusic.rx.api.NetApi.GET_CAROUSEL_DETA
 import static com.example.jackypeng.swangyimusic.rx.api.NetApi.GET_FRESH_MUSIC;
 import static com.example.jackypeng.swangyimusic.rx.api.NetApi.GET_RADIO_DETAIL;
 import static com.example.jackypeng.swangyimusic.rx.api.NetApi.GET_SONG_DETAIL;
+import static com.example.jackypeng.swangyimusic.rx.api.NetApi.GET_USER_PLAYLIST;
+import static com.example.jackypeng.swangyimusic.rx.api.NetApi.LOGIN;
 import static com.example.jackypeng.swangyimusic.rx.api.NetApi.PLAYING_LIST_DETAIL;
 import static com.example.jackypeng.swangyimusic.rx.api.NetApi.PLAYING_MUSIC_LRC;
 import static com.example.jackypeng.swangyimusic.rx.api.NetApi.PLAYING_MUSIC_URL;
@@ -138,9 +142,22 @@ public interface NewMusicApi {
      */
     @GET(PLAYING_MUSIC_LRC)
     Observable<PlayingLrcBean> getPlayingLrc(@Query("id") String id);
+
     /*
      * @return 歌单详情
      */
     @GET(PLAYING_LIST_DETAIL)
     Observable<PlayingListDetailResult> getPlayingListDetail(@Query("id") String id);
+
+    /*
+     * @return 用户登录信息
+     */
+    @GET(LOGIN)
+    Observable<LoginResultBean> login(@Query("phone") String phone, @Query("password") String password);
+
+    /*
+     * @return 用户歌单(需要登录)
+     */
+    @GET(GET_USER_PLAYLIST)
+    Observable<UserPlayListBean> getUserPlayList(@Query("uid") String uid);
 }

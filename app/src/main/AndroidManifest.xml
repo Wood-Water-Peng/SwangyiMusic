@@ -38,6 +38,18 @@
         <activity android:name=".ui.activity.LocalMusicActivity" />
         <activity android:name=".ui.activity.MusicListActivity" />
         <activity android:name=".ui.activity.PlayingListDetailActivity" />
+        <activity
+            android:name=".ui.activity.Login_Regist_Activity"
+            android:theme="@style/FullScreenTheme" />
+        />
+        <activity
+            android:name=".ui.activity.LoginActivity"
+            android:theme="@style/FullScreenTheme" />
+        />
+        <activity
+            android:name=".ui.activity.RegistActivity"
+            android:theme="@style/FullScreenTheme" />
+        />
 
         <service
             android:name=".service.MediaService"

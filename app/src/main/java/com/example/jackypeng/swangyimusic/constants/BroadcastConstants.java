@@ -53,4 +53,10 @@ public class BroadcastConstants {
     public static final String PLAY_PRE_MUSIC = "play_pre_music";
     public static final String PLAY_NEXT_MUSIC = "play_next_music";
 
+    public static final String OPEN_DRAWER = "open_drawer";   //开启mainActivity中的drawer
+    public static final String CLOSE_DRAWER = "close_drawer";  //关闭mainActivity中的drawer
+
+
+    //登录成功广播
+    public static final String LOGIN_SUCCESS = "login_success";
 }

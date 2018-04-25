@@ -3,7 +3,9 @@ package com.example.jackypeng.swangyimusic.adapter;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,10 +16,12 @@ import android.widget.TextView;
 import com.example.jackypeng.swangyimusic.R;
 import com.example.jackypeng.swangyimusic.rx.bean.LocalMusicDetailInfo;
 import com.example.jackypeng.swangyimusic.rx.bean.RecentPlayBean;
-import com.example.jackypeng.swangyimusic.rx.bean.SongListInfo;
+import com.example.jackypeng.swangyimusic.rx.bean.user.UserPlayListBean;
 import com.example.jackypeng.swangyimusic.rx.db.DownloadDBManager;
 import com.example.jackypeng.swangyimusic.ui.activity.DownLoadActivity;
 import com.example.jackypeng.swangyimusic.ui.activity.LocalMusicActivity;
+import com.example.jackypeng.swangyimusic.ui.activity.PlayingListDetailActivity;
+import com.facebook.drawee.view.SimpleDraweeView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,20 +32,16 @@ import java.util.List;
 
 public class FragmentHomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private List<SongListInfo> createdList = new ArrayList<>();   //创建的歌单
-    private List<SongListInfo> collectedList = new ArrayList<>();  //收藏的歌单
     private List<LocalMusicDetailInfo> commonItem = new ArrayList<>();  //本地的数据
     private List<RecentPlayBean> recentPlayList = new ArrayList<>();  //最近播放
+    private List<UserPlayListBean.UserPlayListItem> userPlayListItems = new ArrayList<>();  //用户创建的歌单
+    private List<UserPlayListBean.UserPlayListItem> totalList = new ArrayList<>();  //用户显示的歌单列表
     private boolean isCreatListExpended = false;   //创建的歌单是否展开
-    private boolean isCollectListExpended = false; //收藏的歌单是否展开
-    private List<SongListInfo> totalList = new ArrayList<>();
-
+    private static final String TAG = "FragmentHomeAdapter";
 
     public static final int COMMON_TYPE = 1;
     public static final int CREATED_SONG_LIST_HEAD = 2;
     public static final int CREATED_SONG_LIST_ITEM = 3;
-    public static final int COLLECTED_SONG_LIST_HEAD = 4;
-    public static final int COLLECTED_SONG_LIST_ITEM = 5;
 
     private Context mContext;
 
@@ -51,6 +51,7 @@ public class FragmentHomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        Log.i(TAG, "viewType:" + viewType);
         switch (viewType) {
             case COMMON_TYPE:
                 return new CommonItemHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.fragment_home_common_item, parent, false));
@@ -58,52 +59,57 @@ public class FragmentHomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 return new SongListHeadHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.fragment_home_songlist_head, parent, false));
             case CREATED_SONG_LIST_ITEM:
                 return new SongListItemHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.fragment_home_songlist_item, parent, false));
-            case COLLECTED_SONG_LIST_HEAD:
-                return new SongListHeadHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.fragment_home_songlist_head, parent, false));
-            case COLLECTED_SONG_LIST_ITEM:
-                return new SongListItemHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.fragment_home_songlist_item, parent, false));
         }
         return null;
     }
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        if (holder instanceof CommonItemHolder) {
-            CommonItemHolder itemHolder = (CommonItemHolder) holder;
-            if (position == 0) {
-                itemHolder.iv_icon.setImageResource(R.mipmap.music_icn_local);
-                itemHolder.tv_name.setText("本地音乐");
-                itemHolder.tv_count.setText(String.valueOf("(" + commonItem.size() + ")"));
-                itemHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mContext.startActivity(new Intent(mContext, LocalMusicActivity.class));
-                    }
-                });
-            } else if (position == 1) {
-                itemHolder.iv_icon.setImageResource(R.mipmap.music_icn_recent);
-                itemHolder.tv_name.setText("最近播放");
-                itemHolder.tv_count.setText(String.valueOf("(" + recentPlayList.size() + ")"));
-            } else if (position == 2) {
-                itemHolder.iv_icon.setImageResource(R.mipmap.music_icn_dld);
-                itemHolder.tv_name.setText("下载管理");
-                itemHolder.tv_count.setText(String.valueOf("(" + DownloadDBManager.getInstance().getFinishedSongList().size() + ")"));
-                itemHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mContext.startActivity(new Intent(mContext, DownLoadActivity.class));
-                    }
-                });
-            } else if (position == 3) {
-                itemHolder.iv_icon.setImageResource(R.mipmap.music_icn_artist);
-                itemHolder.tv_name.setText("我的歌手");
-                itemHolder.tv_count.setText(String.valueOf("(" + recentPlayList.size() + ")"));
-            }
-        } else if (holder instanceof SongListHeadHolder) {
-            final SongListHeadHolder headHolder = (SongListHeadHolder) holder;
-            int type = getItemViewType(position);
-            if (type == CREATED_SONG_LIST_HEAD) {
+        if (holder == null) return;
+        int viewType = getItemViewType(position);
+        switch (viewType) {
+            case COMMON_TYPE:
+                CommonItemHolder commonItemHolder = (CommonItemHolder) holder;
+                if (position == 0) {
+                    commonItemHolder.iv_icon.setImageResource(R.mipmap.music_icn_local);
+                    commonItemHolder.tv_name.setText("本地音乐");
+                    commonItemHolder.tv_count.setText(String.valueOf("(" + commonItem.size() + ")"));
+                    commonItemHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            mContext.startActivity(new Intent(mContext, LocalMusicActivity.class));
+                        }
+                    });
+                } else if (position == 1) {
+                    commonItemHolder.iv_icon.setImageResource(R.mipmap.music_icn_recent);
+                    commonItemHolder.tv_name.setText("最近播放");
+                    commonItemHolder.tv_count.setText(String.valueOf("(" + recentPlayList.size() + ")"));
+                } else if (position == 2) {
+                    commonItemHolder.iv_icon.setImageResource(R.mipmap.music_icn_dld);
+                    commonItemHolder.tv_name.setText("下载管理");
+                    commonItemHolder.tv_count.setText(String.valueOf("(" + DownloadDBManager.getInstance().getFinishedSongList().size() + ")"));
+                    commonItemHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            mContext.startActivity(new Intent(mContext, DownLoadActivity.class));
+                        }
+                    });
+                } else if (position == 3) {
+                    commonItemHolder.iv_icon.setImageResource(R.mipmap.music_icn_artist);
+                    commonItemHolder.tv_name.setText("我的歌手");
+                    commonItemHolder.tv_count.setText(String.valueOf("(" + recentPlayList.size() + ")"));
+                }
+                break;
+            case CREATED_SONG_LIST_HEAD:
+                final SongListHeadHolder headHolder = (SongListHeadHolder) holder;
                 headHolder.tv_name.setText("创建的歌单");
+                if (totalList.size() > 0) {
+                    isCreatListExpended = true;
+                    ObjectAnimator anim = ObjectAnimator.ofFloat(headHolder.iv_icon, "rotation", 0, 90);
+                    anim.setDuration(100);
+                    anim.setInterpolator(new LinearInterpolator());
+                    anim.start();
+                }
                 headHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -111,47 +117,42 @@ public class FragmentHomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         anim.setDuration(100);
                         anim.setInterpolator(new LinearInterpolator());
                         if (isCreatListExpended) {
-                            totalList.removeAll(createdList);
-                            notifyItemRangeRemoved(5, createdList.size());
+                            totalList.removeAll(userPlayListItems);
+                            notifyItemRangeRemoved(5, userPlayListItems.size());
                             anim.reverse();
                         } else {
-                            totalList.addAll(createdList);
-                            notifyItemRangeInserted(5, createdList.size());
+                            totalList.addAll(userPlayListItems);
+                            notifyItemRangeInserted(5, userPlayListItems.size());
                             anim.start();
                         }
                         isCreatListExpended = !isCreatListExpended;
                     }
                 });
-            } else if (type == COLLECTED_SONG_LIST_HEAD) {
-                headHolder.tv_name.setText("收藏的歌单");
-                headHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                break;
+            case CREATED_SONG_LIST_ITEM:
+                SongListItemHolder itemHolder = (SongListItemHolder) holder;
+                final UserPlayListBean.UserPlayListItem item = totalList.get(position - 5);
+                itemHolder.iv_icon.setImageURI(item.getCoverImgUrl());
+                itemHolder.tv_name.setText(item.getName());
+                itemHolder.tv_count.setText(item.getTrackCount() + "首");
+                itemHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        ObjectAnimator anim = ObjectAnimator.ofFloat(headHolder.iv_icon, "rotation", 0, 90);
-                        anim.setDuration(100);
-                        anim.setInterpolator(new LinearInterpolator());
-                        if (isCollectListExpended) {
-                            totalList.removeAll(collectedList);
-                            notifyItemRangeRemoved(totalList.size() - collectedList.size() - 1, collectedList.size());
-                            anim.reverse();
-                        } else {
-                            totalList.addAll(collectedList);
-                            notifyItemRangeInserted(totalList.size() - collectedList.size() - 1, collectedList.size());
-                            anim.start();
-                        }
-                        isCollectListExpended = !isCollectListExpended;
+                        Intent intent = new Intent(mContext, PlayingListDetailActivity.class);
+                        Bundle bundle = new Bundle();
+                        bundle.putString("id", item.getId());
+                        intent.putExtras(bundle);
+                        mContext.startActivity(intent);
                     }
                 });
-            }
-        } else if (holder instanceof SongListItemHolder) {
-            SongListItemHolder itemHolder = (SongListItemHolder) holder;
+                break;
         }
-
     }
 
     @Override
     public int getItemCount() {
-        return 6 + totalList.size();
+        Log.i(TAG, "totalSize:" + totalList.size());
+        return 5 + totalList.size();
     }
 
     @Override
@@ -165,28 +166,30 @@ public class FragmentHomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             case 4:
                 return CREATED_SONG_LIST_HEAD;
         }
-        if ((createdList.size() + 4) > position) {
+        Log.i(TAG, "position:" + position);
+        if ((totalList.size() + 4) >= position) {
             return CREATED_SONG_LIST_ITEM;
-        } else {
-            if (position == createdList.size() + 5) {
-                return COLLECTED_SONG_LIST_HEAD;
-            } else if ((collectedList.size() + createdList.size() + 6) > position) {
-                return COLLECTED_SONG_LIST_ITEM;
-            }
         }
-        return 0;
+        return -1;
     }
 
     public void setData(List<LocalMusicDetailInfo> localMusicDetailInfoList, List<RecentPlayBean> recentPlayList) {
-        this.commonItem = localMusicDetailInfoList;
-        this.recentPlayList = recentPlayList;
-        //初始化数据
-        if (isCollectListExpended) {
-            totalList.addAll(collectedList);
-        } else if (isCreatListExpended) {
-            totalList.addAll(createdList);
+        if (localMusicDetailInfoList != null) {
+            this.commonItem = localMusicDetailInfoList;
         }
+        if (recentPlayList != null) {
+            this.recentPlayList = recentPlayList;
+        }
+        notifyDataSetChanged();
+    }
 
+    //用户创建的歌单
+    public void setUserPlaylist(List<UserPlayListBean.UserPlayListItem> userPlayListItems) {
+        if (userPlayListItems == null || userPlayListItems.size() == 0) {
+            return;
+        }
+        this.userPlayListItems = userPlayListItems;
+        this.totalList.addAll(userPlayListItems);
         notifyDataSetChanged();
     }
 
@@ -219,15 +222,15 @@ public class FragmentHomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     }
 
     static class SongListItemHolder extends RecyclerView.ViewHolder {
-        ImageView iv_icon;
+        SimpleDraweeView iv_icon;
         TextView tv_name;
         TextView tv_count;
 
         SongListItemHolder(View itemView) {
             super(itemView);
-            iv_icon = (ImageView) itemView.findViewById(R.id.fragment_home_item_img);
-            tv_name = (TextView) itemView.findViewById(R.id.fragment_home_item_title);
-            tv_count = (TextView) itemView.findViewById(R.id.fragment_home_item_count);
+            iv_icon = (SimpleDraweeView) itemView.findViewById(R.id.fragment_main_playlist_item_img);
+            tv_name = (TextView) itemView.findViewById(R.id.fragment_main_playlist_item_title);
+            tv_count = (TextView) itemView.findViewById(R.id.fragment_main_playlist_item_count);
         }
     }
 }

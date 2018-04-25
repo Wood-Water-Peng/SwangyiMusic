@@ -1,5 +1,9 @@
 package com.example.jackypeng.swangyimusic.ui.activity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -12,6 +16,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.example.jackypeng.swangyimusic.R;
+import com.example.jackypeng.swangyimusic.constants.BroadcastConstants;
 import com.example.jackypeng.swangyimusic.rx.model.BaseModel;
 import com.example.jackypeng.swangyimusic.rx.presenter.BasePresenter;
 import com.example.jackypeng.swangyimusic.rx.view.rxView.BaseView;
@@ -48,6 +53,8 @@ public class MainActivity extends BaseActivity {
     @BindView(R.id.activity_main_bottom_controller)
     FrameLayout bottom_frameLayout;
 
+    private DrawerStatusReceiver drawerStatusReceiver = new DrawerStatusReceiver();   //操作抽屉控件
+
     @OnClick(R.id.bar_friends)
     public void switch2friends() {
         viewPager.setCurrentItem(2);
@@ -75,6 +82,7 @@ public class MainActivity extends BaseActivity {
         initBottomController();
         initLeftFragment();
         initTabs();
+        initBroadcasts();
         viewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int position) {
@@ -119,6 +127,13 @@ public class MainActivity extends BaseActivity {
         viewPager.setCurrentItem(1);
     }
 
+    private void initBroadcasts() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BroadcastConstants.OPEN_DRAWER);
+        filter.addAction(BroadcastConstants.CLOSE_DRAWER);
+        registerReceiver(drawerStatusReceiver, filter);
+    }
+
     private void initLeftFragment() {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.add(R.id.activity_main_left_menu, new LeftMenuFragment()).commitAllowingStateLoss();
@@ -157,6 +172,22 @@ public class MainActivity extends BaseActivity {
         drawerLayout.closeDrawers();
     }
 
+    private class DrawerStatusReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            switch (action) {
+                case BroadcastConstants.OPEN_DRAWER:
+                    drawerLayout.openDrawer(Gravity.LEFT);
+                    break;
+                case BroadcastConstants.CLOSE_DRAWER:
+                    drawerLayout.closeDrawers();
+                    break;
+            }
+        }
+    }
+
     @Override
     protected int getNavBarStatus() {
         return HIDE_NAV_BAR;
@@ -187,4 +218,11 @@ public class MainActivity extends BaseActivity {
         return R.layout.activity_main;
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (drawerStatusReceiver != null) {
+            unregisterReceiver(drawerStatusReceiver);
+        }
+    }
 }
