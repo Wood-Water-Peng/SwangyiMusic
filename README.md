@@ -1,11 +1,11 @@
 # SwangyiMusic
 
-###项目说明
+### 项目说明
 1. 思路和部分逻辑参考网易云音乐
 2. 核心逻辑全部手写，各别功能模块copy
 3. 服务端运行在本地
 
-###项目使用
+### 项目使用
 
 首先感谢[阿发](https://github.com/Binaryify/NeteaseCloudMusicApi)提供的接口，详细文档点[这里](https://binaryify.github.io/NeteaseCloudMusicApi/#/?id=%E8%8E%B7%E5%8F%96%E6%AD%8C%E6%9B%B2%E8%AF%A6%E6%83%85)
 
@@ -14,7 +14,7 @@
 
 对于接口测试，推荐一款软件[postman](https://www.getpostman.com/)
 
-###项目涉及的部分知识点
+### 项目涉及的部分知识点
 
 1. IPC过程，播放音乐的服务运行在remote进程
 2. MVP+RxAndroid_Retrofit模式的使用
@@ -28,13 +28,13 @@
 10. 多层嵌套Fragment的懒加载思路
 11. 未完待续...
 
-####项目截图
+#### 项目截图
 
-<img width="280" height="480" src="images/screenshot_01.jpeg" alt=""/>
-<img width="280" height="480" src="images/screenshot_02.jpeg" alt=""/>
+<img width="260" height="480" src="images/screenshot_01.jpeg" alt="用户界面"/>
+<img width="260" height="480" src="images/screenshot_02.jpeg" alt=""/>
 
-<img width="280" height="480" src="images/screenshot_03.jpeg" alt=""/>
-<img width="280" height="480" src="images/screenshot_04.jpeg" alt=""/>
+<img width="260" height="480" src="images/screenshot_03.jpeg" alt=""/>
+<img width="260" height="480" src="images/screenshot_04.jpeg" alt=""/>
 
 
 该App暂时只实现了部分核心功能,且有很多细节bug,但是作者正在不断完善中
