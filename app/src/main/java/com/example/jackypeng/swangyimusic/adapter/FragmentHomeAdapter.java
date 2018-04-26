@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.jackypeng.swangyimusic.R;
+import com.example.jackypeng.swangyimusic.constants.NetworkMsgConstants;
 import com.example.jackypeng.swangyimusic.rx.bean.LocalMusicDetailInfo;
 import com.example.jackypeng.swangyimusic.rx.bean.RecentPlayBean;
 import com.example.jackypeng.swangyimusic.rx.bean.user.UserPlayListBean;
@@ -21,6 +22,7 @@ import com.example.jackypeng.swangyimusic.rx.db.DownloadDBManager;
 import com.example.jackypeng.swangyimusic.ui.activity.DownLoadActivity;
 import com.example.jackypeng.swangyimusic.ui.activity.LocalMusicActivity;
 import com.example.jackypeng.swangyimusic.ui.activity.PlayingListDetailActivity;
+import com.example.jackypeng.swangyimusic.util.ToastUtil;
 import com.facebook.drawee.view.SimpleDraweeView;
 
 import java.util.ArrayList;
@@ -38,7 +40,7 @@ public class FragmentHomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private List<UserPlayListBean.UserPlayListItem> totalList = new ArrayList<>();  //用户显示的歌单列表
     private boolean isCreatListExpended = false;   //创建的歌单是否展开
     private static final String TAG = "FragmentHomeAdapter";
-
+    private int network_status = -1;
     public static final int COMMON_TYPE = 1;
     public static final int CREATED_SONG_LIST_HEAD = 2;
     public static final int CREATED_SONG_LIST_ITEM = 3;
@@ -138,13 +140,18 @@ public class FragmentHomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 itemHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent intent = new Intent(mContext, PlayingListDetailActivity.class);
-                        Bundle bundle = new Bundle();
-                        bundle.putString("id", item.getId());
-                        intent.putExtras(bundle);
-                        mContext.startActivity(intent);
+                        if (network_status == NetworkMsgConstants.NETWORK_DISCONNECT) {
+                            ToastUtil.getInstance().toast("网络未连接");
+                        } else {
+                            Intent intent = new Intent(mContext, PlayingListDetailActivity.class);
+                            Bundle bundle = new Bundle();
+                            bundle.putString("id", item.getId());
+                            intent.putExtras(bundle);
+                            mContext.startActivity(intent);
+                        }
                     }
                 });
+                itemHolder.updateTextColor(mContext, network_status);
                 break;
         }
     }
@@ -193,6 +200,11 @@ public class FragmentHomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         notifyDataSetChanged();
     }
 
+    public void updateUserPlayList(int status) {
+        this.network_status = status;
+        notifyDataSetChanged();
+    }
+
     static class CommonItemHolder extends RecyclerView.ViewHolder {
         ImageView iv_icon;
         TextView tv_name;
@@ -231,6 +243,16 @@ public class FragmentHomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             iv_icon = (SimpleDraweeView) itemView.findViewById(R.id.fragment_main_playlist_item_img);
             tv_name = (TextView) itemView.findViewById(R.id.fragment_main_playlist_item_title);
             tv_count = (TextView) itemView.findViewById(R.id.fragment_main_playlist_item_count);
+        }
+
+        public void updateTextColor(Context context, int status) {
+            if (status == NetworkMsgConstants.NETWORK_DISCONNECT) {
+                tv_name.setTextColor(context.getResources().getColor(R.color.light_gray));
+                tv_count.setTextColor(context.getResources().getColor(R.color.light_gray));
+            } else if (status == NetworkMsgConstants.NETWORK_AVAILABLE) {
+                tv_name.setTextColor(context.getResources().getColor(R.color.black));
+                tv_count.setTextColor(context.getResources().getColor(R.color.black));
+            }
         }
     }
 }

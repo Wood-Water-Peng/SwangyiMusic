@@ -5,11 +5,17 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
+import android.util.Log;
 
 import com.example.jackypeng.swangyimusic.constants.BroadcastConstants;
+import com.example.jackypeng.swangyimusic.constants.NetworkMsgConstants;
+import com.example.jackypeng.swangyimusic.eventBus.NetworkChangedEvent;
+import com.example.jackypeng.swangyimusic.network.NetworkStatusInfo;
 import com.example.jackypeng.swangyimusic.rx.RetrofitUtil;
 import com.example.jackypeng.swangyimusic.rx.api.NetApi;
 import com.example.jackypeng.swangyimusic.service.AlbumListItemTrack;
@@ -17,6 +23,8 @@ import com.example.jackypeng.swangyimusic.ui.activity.MainActivity;
 import com.example.jackypeng.swangyimusic.util.QueryUtil;
 import com.example.jackypeng.swangyimusic.util.ToastUtil;
 import com.facebook.drawee.backends.pipeline.Fresco;
+
+import org.greenrobot.eventbus.EventBus;
 
 /**
  * Created by jackypeng on 2018/3/6.
@@ -39,8 +47,26 @@ public class MainApplication extends Application {
         mContext = this;
         Fresco.initialize(this);
         initOkHttpUtils();
+        initNetworkStatus();
     }
 
+    private void initNetworkStatus() {
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        //获取ConnectivityManager对象对应的NetworkInfo对象
+        //获取WIFI连接的信息
+        NetworkInfo wifiNetworkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+        //获取移动数据连接的信息
+        NetworkInfo dataNetworkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+        if (wifiNetworkInfo.isConnected() && dataNetworkInfo.isConnected()) {
+            NetworkStatusInfo.getInstance().setStatus(NetworkMsgConstants.WIFI_MOBILE);
+        } else if (wifiNetworkInfo.isConnected() && !dataNetworkInfo.isConnected()) {
+            NetworkStatusInfo.getInstance().setStatus(NetworkMsgConstants.WIFI_NO_MOBILE);
+        } else if (!wifiNetworkInfo.isConnected() && dataNetworkInfo.isConnected()) {
+            NetworkStatusInfo.getInstance().setStatus(NetworkMsgConstants.NO_WIFI_MOBILE);
+        } else {
+            NetworkStatusInfo.getInstance().setStatus(NetworkMsgConstants.NO_WIFI_NO_MOBILE);
+        }
+    }
 
 
     private void initOkHttpUtils() {

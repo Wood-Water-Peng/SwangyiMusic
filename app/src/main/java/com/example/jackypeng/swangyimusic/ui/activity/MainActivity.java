@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -16,7 +18,10 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.example.jackypeng.swangyimusic.R;
+import com.example.jackypeng.swangyimusic.broadcast.NetworkStateReceiver;
 import com.example.jackypeng.swangyimusic.constants.BroadcastConstants;
+import com.example.jackypeng.swangyimusic.eventBus.DownloadSongFinishedEvent;
+import com.example.jackypeng.swangyimusic.eventBus.NetworkChangedEvent;
 import com.example.jackypeng.swangyimusic.rx.model.BaseModel;
 import com.example.jackypeng.swangyimusic.rx.presenter.BasePresenter;
 import com.example.jackypeng.swangyimusic.rx.view.rxView.BaseView;
@@ -26,6 +31,10 @@ import com.example.jackypeng.swangyimusic.ui.fragment.FriendFragment;
 import com.example.jackypeng.swangyimusic.ui.fragment.HomeFragment;
 import com.example.jackypeng.swangyimusic.ui.fragment.LeftMenuFragment;
 import com.example.jackypeng.swangyimusic.ui.fragment.MusicFragment;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -128,10 +137,13 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initBroadcasts() {
+        //监听抽屉菜单
         IntentFilter filter = new IntentFilter();
         filter.addAction(BroadcastConstants.OPEN_DRAWER);
         filter.addAction(BroadcastConstants.CLOSE_DRAWER);
         registerReceiver(drawerStatusReceiver, filter);
+
+
     }
 
     private void initLeftFragment() {
@@ -164,11 +176,6 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onInitView(Bundle savedInstanceState) {
         init();
-//        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-//        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-//        getWindow().setStatusBarColor(getResources().getColor(R.color.light_gray));
-//        getWindow().setStatusBarColor(Color.TRANSPARENT);
         drawerLayout.closeDrawers();
     }
 

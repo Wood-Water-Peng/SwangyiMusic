@@ -1,19 +1,20 @@
 package com.example.jackypeng.swangyimusic.ui.fragment;
 
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 
 import com.example.jackypeng.swangyimusic.R;
 import com.example.jackypeng.swangyimusic.adapter.FragmentHomeAdapter;
+import com.example.jackypeng.swangyimusic.broadcast.NetworkStateReceiver;
+import com.example.jackypeng.swangyimusic.constants.NetworkMsgConstants;
 import com.example.jackypeng.swangyimusic.constants.UserInfoConstants;
+import com.example.jackypeng.swangyimusic.eventBus.NetworkChangedEvent;
+import com.example.jackypeng.swangyimusic.network.NetworkStatusInfo;
 import com.example.jackypeng.swangyimusic.rx.bean.LocalMusicDetailInfo;
 import com.example.jackypeng.swangyimusic.rx.bean.RecentPlayBean;
 import com.example.jackypeng.swangyimusic.rx.bean.user.UserPlayListBean;
@@ -24,6 +25,11 @@ import com.example.jackypeng.swangyimusic.rx.presenter.UserPlayListPresenter;
 import com.example.jackypeng.swangyimusic.rx.view.rxView.BaseView;
 import com.example.jackypeng.swangyimusic.util.MusicUtil;
 import com.example.jackypeng.swangyimusic.util.SharePreferenceUtil;
+import com.example.jackypeng.swangyimusic.util.ToastUtil;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.List;
 
@@ -40,6 +46,7 @@ public class HomeFragment extends BaseFragment<UserPlayListContract.Model, UserP
     private List<LocalMusicDetailInfo> localMusicDetailInfoList;
     private FragmentHomeAdapter homeAdapter;
     private List<RecentPlayBean> recentPlayList;
+    private List<UserPlayListBean.UserPlayListItem> userPlayListItems;
 
 
     @Override
@@ -62,8 +69,18 @@ public class HomeFragment extends BaseFragment<UserPlayListContract.Model, UserP
         recyclerView.setAdapter(homeAdapter);
         //异步的从本地数据库中拿到相关数据
         initData();
-
+        initBroadcast();
         initUserPlayList();
+        EventBus.getDefault().register(this);
+    }
+
+    private void initBroadcast() {
+        //监听网络变化
+        IntentFilter filter2 = new IntentFilter();
+        filter2.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+//        filter2.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+//        filter2.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        getContext().registerReceiver(networkStateReceiver, filter2);
     }
 
     private void initUserPlayList() {
@@ -71,7 +88,13 @@ public class HomeFragment extends BaseFragment<UserPlayListContract.Model, UserP
         String userId = SharePreferenceUtil.readString(UserInfoConstants.USER_INFO, UserInfoConstants.USER_ID);
 
         if (isUserLogin) {
-            mPresenter.getUserPlayList(userId);
+            //判断网络状态
+            int network_status = NetworkStatusInfo.getInstance().getStatus();
+            if (network_status == NetworkMsgConstants.NO_WIFI_NO_MOBILE) {
+                ToastUtil.getInstance().toast("网络未连接");
+            } else {
+                mPresenter.getUserPlayList(userId);
+            }
         }
     }
 
@@ -111,7 +134,44 @@ public class HomeFragment extends BaseFragment<UserPlayListContract.Model, UserP
     @Override
     public void getUserPlayListView(UserPlayListBean userPlayListBean) {
         if (userPlayListBean.getCode() == 200) {
-            homeAdapter.setUserPlaylist(userPlayListBean.getPlaylist());
+            this.userPlayListItems = userPlayListBean.getPlaylist();
+            homeAdapter.setUserPlaylist(userPlayListItems);
         }
+    }
+
+    private NetworkStateReceiver networkStateReceiver = new NetworkStateReceiver();
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onNetworkChangedEvent(NetworkChangedEvent event) {
+        //根据网络状态，刷新界面
+        refreshView(event.getMsg());
+    }
+
+    //刷新界面
+    private void refreshView(int msg) {
+        switch (msg) {
+            case NetworkMsgConstants.NO_WIFI_NO_MOBILE:
+                //将用户创建歌单的颜色变灰
+                if (userPlayListItems != null && userPlayListItems.size() > 0) {
+                    homeAdapter.updateUserPlayList(NetworkMsgConstants.NETWORK_DISCONNECT);
+                }
+                break;
+            case NetworkMsgConstants.WIFI_MOBILE:
+            case NetworkMsgConstants.NO_WIFI_MOBILE:
+            case NetworkMsgConstants.WIFI_NO_MOBILE:
+                //将用户创建歌单的颜色变白
+                if (userPlayListItems != null && userPlayListItems.size() > 0) {
+                    homeAdapter.updateUserPlayList(NetworkMsgConstants.NETWORK_AVAILABLE);
+                }
+                break;
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        getContext().unregisterReceiver(networkStateReceiver);
+        EventBus.getDefault().unregister(this);
     }
 }
