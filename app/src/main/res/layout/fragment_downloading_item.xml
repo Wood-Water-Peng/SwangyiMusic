@@ -25,12 +25,11 @@
 
         <TextView
             android:id="@+id/fragment_downloading_item_song_name"
-            android:layout_width="wrap_content"
+            android:layout_width="160dp"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
             android:singleLine="true"
-            android:text="如果我变成回忆"
             android:textColor="@color/text_color"
             android:textSize="14sp" />
 
@@ -41,8 +40,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_weight="20"
-            android:maxHeight="3dp"
             android:max="100"
+            android:maxHeight="3dp"
             android:secondaryProgress="100"
             android:secondaryProgressTint="@color/test_color" />
 

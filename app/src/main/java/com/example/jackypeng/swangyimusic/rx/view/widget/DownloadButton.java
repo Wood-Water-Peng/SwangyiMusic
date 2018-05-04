@@ -22,7 +22,7 @@ import static com.example.jackypeng.swangyimusic.constants.DownloadStatusConstan
 public class DownloadButton extends Button {
 
     private Context mContext;
-
+    private int mStatus;
     public DownloadButton(Context context) {
         this(context, null);
     }
@@ -36,7 +36,13 @@ public class DownloadButton extends Button {
         this.mContext = context;
     }
 
+
+    public int getmStatus() {
+        return mStatus;
+    }
+
     public void setStatus(int status) {
+        this.mStatus=status;
         switch (status) {
             case INIT:
                 setText(mContext.getResources().getString(R.string.btn_status_init));

@@ -1,8 +1,6 @@
 package com.example.jackypeng.swangyimusic.adapter;
 
 import android.content.Context;
-import android.content.DialogInterface;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,12 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.jackypeng.swangyimusic.R;
-import com.example.jackypeng.swangyimusic.download_music.DownloadInfo;
-import com.example.jackypeng.swangyimusic.download_music.DownloadManager;
-import com.example.jackypeng.swangyimusic.rx.bean.AlbumSongItemBean;
-import com.example.jackypeng.swangyimusic.rx.bean.LocalMusicDetailInfo;
 import com.example.jackypeng.swangyimusic.ui.fragment.LocalMusicMoreFragment;
-import com.example.jackypeng.swangyimusic.ui.fragment.MusicMoreFragment;
 
 import java.util.ArrayList;
 import java.util.List;

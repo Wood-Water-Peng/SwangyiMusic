@@ -4,9 +4,10 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.example.jackypeng.swangyimusic.MainApplication;
 import com.example.jackypeng.swangyimusic.constants.DownloadStatusConstants;
-import com.example.jackypeng.swangyimusic.rx.bean.DaoMaster;
-import com.example.jackypeng.swangyimusic.rx.bean.DaoSession;
-import com.example.jackypeng.swangyimusic.rx.bean.DownloadInfoEntity;
+import com.example.jackypeng.swangyimusic.download_music.DaoMaster;
+import com.example.jackypeng.swangyimusic.download_music.DaoSession;
+import com.example.jackypeng.swangyimusic.download_music.MusicDownloadTrack;
+import com.example.jackypeng.swangyimusic.download_music.MusicDownloadTrackDao;
 import com.example.jackypeng.swangyimusic.rx.bean.DownloadInfoEntityDao;
 
 import org.greenrobot.greendao.query.QueryBuilder;
@@ -43,33 +44,46 @@ public class DownloadDBManager {
         daoSession = daoMaster.newSession();
     }
 
-    public void insertInfo(DownloadInfoEntity downloadInfoEntity) {
-        daoSession.getDownloadInfoEntityDao().insertOrReplace(downloadInfoEntity);
+    public void insertInfo(MusicDownloadTrack musicDownloadTrack) {
+        daoSession.getMusicDownloadTrackDao().insertOrReplace(musicDownloadTrack);
     }
 
-    public void updateInfo(DownloadInfoEntity downloadInfoEntity) {
-        daoSession.getDownloadInfoEntityDao().insertOrReplace(downloadInfoEntity);
+    public void insertListTrack(List<MusicDownloadTrack> tracks) {
+        daoSession.getMusicDownloadTrackDao().insertInTx(tracks);
     }
 
-    public void deleteInfo(DownloadInfoEntity downloadInfoEntity) {
-        daoSession.getDownloadInfoEntityDao().delete(downloadInfoEntity);
+    public void updateInfo(MusicDownloadTrack musicDownloadTrack) {
+        daoSession.getMusicDownloadTrackDao().update(musicDownloadTrack);
     }
 
-    //拿到下载实体
-    public DownloadInfoEntity getDownloadEntity(String downloadId) {
-        return daoSession.getDownloadInfoEntityDao().queryBuilder().where(DownloadInfoEntityDao.Properties.DownloadId.eq(downloadId)).list().get(0);
+    public void deleteInfo(MusicDownloadTrack musicDownloadTrack) {
+        daoSession.getMusicDownloadTrackDao().delete(musicDownloadTrack);
+    }
+
+    //根据歌曲id拿到下载实体
+    public MusicDownloadTrack getDownloadEntity(String musicId) {
+        List<MusicDownloadTrack> list = daoSession.getMusicDownloadTrackDao().queryBuilder().where(MusicDownloadTrackDao.Properties.MusicId.eq(musicId)).list();
+        if (list.size() > 0) {
+            return list.get(0);
+        } else {
+            return null;
+        }
+    }
+
+    public void deleteInfo(String musicId) {
+        daoSession.getMusicDownloadTrackDao().delete(getDownloadEntity(musicId));
     }
 
     //拿到下载完的了
-    public List<DownloadInfoEntity> getFinishedSongList() {
-        return daoSession.getDownloadInfoEntityDao().queryBuilder().where(DownloadInfoEntityDao.Properties.Status.eq(DownloadStatusConstants.FINISHED)).list();
+    public List<MusicDownloadTrack> getFinishedSongList() {
+        return daoSession.getMusicDownloadTrackDao().queryBuilder().where(MusicDownloadTrackDao.Properties.Status.eq(DownloadStatusConstants.FINISHED)).list();
     }
 
-    //拿到下载中的
-    public List<DownloadInfoEntity> getLoadingSongList() {
-        QueryBuilder<DownloadInfoEntity> queryBuilder = daoSession.getDownloadInfoEntityDao().queryBuilder();
-        queryBuilder.whereOr(DownloadInfoEntityDao.Properties.Status.eq(DownloadStatusConstants.DOWNLOADING)
-                , DownloadInfoEntityDao.Properties.Status.eq(DownloadStatusConstants.PAUSED));
+    //拿到所有的下载任务
+    public List<MusicDownloadTrack> getLoadingSongList() {
+        QueryBuilder<MusicDownloadTrack> queryBuilder = daoSession.getMusicDownloadTrackDao().queryBuilder();
+        queryBuilder.whereOr(MusicDownloadTrackDao.Properties.Status.eq(DownloadStatusConstants.DOWNLOADING)
+                , MusicDownloadTrackDao.Properties.Status.eq(DownloadStatusConstants.PAUSED),MusicDownloadTrackDao.Properties.Status.eq(DownloadStatusConstants.WAITING));
         return queryBuilder.list();
 
     }

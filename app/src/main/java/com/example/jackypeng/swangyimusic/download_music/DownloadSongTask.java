@@ -66,7 +66,7 @@ public class DownloadSongTask implements Runnable {
                 if (totalSize == 0) {
                     downloadInfo.setTotalSize(httpConnection.getContentLength());
                 }
-                DownloadDBManager.getInstance().updateInfo(downloadInfo);
+//                DownloadDBManager.getInstance().updateInfo(downloadInfo);
                 if (taskListener != null) {
                     UIUtil.runInMainThread(new Runnable() {
                         @Override
@@ -94,7 +94,7 @@ public class DownloadSongTask implements Runnable {
                     offset += len;
                     //更新下载进度
                     downloadInfo.setLoadedSize(offset);
-                    DownloadDBManager.getInstance().updateInfo(downloadInfo);
+//                    DownloadDBManager.getInstance().updateInfo(downloadInfo);
                     if (offset - lastUpdateSize > 1000 * 100) {
                         lastUpdateSize = offset;
                         if (taskListener != null) {
@@ -106,7 +106,6 @@ public class DownloadSongTask implements Runnable {
                             });
                         }
                     }
-//                    Thread.sleep(500);
                 }
                 //通知监听者下载状态
                 //更新下载记录到数据库中
@@ -121,7 +120,7 @@ public class DownloadSongTask implements Runnable {
                         });
                     }
                     downloadInfo.setStatus(DownloadStatusConstants.PAUSED);
-                    DownloadDBManager.getInstance().updateInfo(downloadInfo);
+//                    DownloadDBManager.getInstance().updateInfo(downloadInfo);
                 } else {
                     if (taskListener != null) {
                         UIUtil.runInMainThread(new Runnable() {
@@ -132,7 +131,7 @@ public class DownloadSongTask implements Runnable {
                         });
                     }
                     downloadInfo.setStatus(DownloadStatusConstants.FINISHED);
-                    DownloadDBManager.getInstance().updateInfo(downloadInfo);
+//                    DownloadDBManager.getInstance().updateInfo(downloadInfo);
                     EventBus.getDefault().post(new DownloadSongFinishedEvent());  //通知
                     Log.i(TAG, "---下载完成---");
                 }

@@ -14,13 +14,17 @@ import android.util.Log;
 
 import com.example.jackypeng.swangyimusic.constants.BroadcastConstants;
 import com.example.jackypeng.swangyimusic.constants.NetworkMsgConstants;
+import com.example.jackypeng.swangyimusic.constants.SpConstants;
+import com.example.jackypeng.swangyimusic.constants.UserInfoConstants;
 import com.example.jackypeng.swangyimusic.eventBus.NetworkChangedEvent;
 import com.example.jackypeng.swangyimusic.network.NetworkStatusInfo;
 import com.example.jackypeng.swangyimusic.rx.RetrofitUtil;
 import com.example.jackypeng.swangyimusic.rx.api.NetApi;
+import com.example.jackypeng.swangyimusic.rx.bean.user.UserLoginInfoBean;
 import com.example.jackypeng.swangyimusic.service.AlbumListItemTrack;
 import com.example.jackypeng.swangyimusic.ui.activity.MainActivity;
 import com.example.jackypeng.swangyimusic.util.QueryUtil;
+import com.example.jackypeng.swangyimusic.util.SharePreferenceUtil;
 import com.example.jackypeng.swangyimusic.util.ToastUtil;
 import com.facebook.drawee.backends.pipeline.Fresco;
 
@@ -48,6 +52,11 @@ public class MainApplication extends Application {
         Fresco.initialize(this);
         initOkHttpUtils();
         initNetworkStatus();
+        initUserInfo();
+    }
+
+    private void initUserInfo() {
+        UserLoginInfoBean.getInstance().setUserId(SharePreferenceUtil.readString(UserInfoConstants.USER_INFO, UserInfoConstants.USER_ID));
     }
 
     private void initNetworkStatus() {
@@ -66,6 +75,7 @@ public class MainApplication extends Application {
         } else {
             NetworkStatusInfo.getInstance().setStatus(NetworkMsgConstants.NO_WIFI_NO_MOBILE);
         }
+
     }
 
 

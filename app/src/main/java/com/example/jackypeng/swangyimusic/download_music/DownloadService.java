@@ -1,7 +1,6 @@
 package com.example.jackypeng.swangyimusic.download_music;
 
 import android.app.Service;
-import android.content.Entity;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Bundle;
@@ -83,11 +82,11 @@ public class DownloadService extends Service {
         service = Executors.newFixedThreadPool(3);   //暂时默认为3
         mBinder = new DownloadBinder();
         //从数据库中拿到所有没有下载完的数据
-        waitingQueue = DownloadDBManager.getInstance().getLoadingSongList();
+//        waitingQueue = DownloadDBManager.getInstance().getLoadingSongList();
         for (int i = 0; i < waitingQueue.size(); i++) {
             DownloadInfoEntity entity = waitingQueue.get(i);
             entity.setStatus(DownloadStatusConstants.PAUSED);
-            DownloadDBManager.getInstance().updateInfo(entity);   //将之前未下载完成的任务更新状态
+//            DownloadDBManager.getInstance().updateInfo(entity);   //将之前未下载完成的任务更新状态
         }
     }
 
@@ -132,9 +131,9 @@ public class DownloadService extends Service {
             ToastUtil.getInstance().toast(msg);
             return;
         }
-        DownloadInfoEntity entity = DownloadDBManager.getInstance().getDownloadEntity(downloadId);
-        loadingQueue.add(entity);
-        service.submit(new DownloadSongTask(entity));
+//        DownloadInfoEntity entity = DownloadDBManager.getInstance().getDownloadEntity(downloadId);
+//        loadingQueue.add(entity);
+//        service.submit(new DownloadSongTask(entity));
         String msg = downloadId + "---" + "开始下载";
         ToastUtil.getInstance().toast(msg);
     }
@@ -166,10 +165,10 @@ public class DownloadService extends Service {
             }
         }
         //创建一个数据库实体
-        DownloadInfoEntity entity = new DownloadInfoEntity(downloadId, downloadInfo.getSongId(), DownloadStatusConstants.INIT, downloadInfo.getUrl(), downloadInfo.getSongName(), downloadInfo.getAuthorName(), DownloadUtil.getDownloadPath(), downloadInfo.getLrc(), downloadInfo.getPic_small(), downloadInfo.getPic_big(), 0l, 0l);
-        DownloadDBManager.getInstance().insertInfo(entity);
-        loadingQueue.add(entity);
-        service.submit(new DownloadSongTask(entity));
+//        DownloadInfoEntity entity = new DownloadInfoEntity(downloadId, downloadInfo.getSongId(), DownloadStatusConstants.INIT, downloadInfo.getUrl(), downloadInfo.getSongName(), downloadInfo.getAuthorName(), DownloadUtil.getDownloadPath(), downloadInfo.getLrc(), downloadInfo.getPic_small(), downloadInfo.getPic_big(), 0l, 0l);
+//        DownloadDBManager.getInstance().insertInfo(entity);
+//        loadingQueue.add(entity);
+//        service.submit(new DownloadSongTask(entity));
         String msg = downloadId + "---" + downloadInfo.getSongName() + "  开始下载";
         ToastUtil.getInstance().toast(msg);
     }

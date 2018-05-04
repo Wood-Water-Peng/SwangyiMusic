@@ -1,10 +1,5 @@
 package com.example.jackypeng.swangyimusic.adapter;
 
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.os.IBinder;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,10 +10,10 @@ import android.widget.TextView;
 
 import com.example.jackypeng.swangyimusic.R;
 import com.example.jackypeng.swangyimusic.constants.DownloadStatusConstants;
-import com.example.jackypeng.swangyimusic.download_music.DownloadInfo;
 import com.example.jackypeng.swangyimusic.download_music.DownloadManager;
-import com.example.jackypeng.swangyimusic.download_music.DownloadService;
-import com.example.jackypeng.swangyimusic.download_music.DownloadTaskListener;
+import com.example.jackypeng.swangyimusic.download_music.MusicDownloadTrack;
+import com.example.jackypeng.swangyimusic.download_music.SimpleDownloadTaskListener;
+import com.example.jackypeng.swangyimusic.network.DownloadMusicTask;
 import com.example.jackypeng.swangyimusic.rx.bean.DownloadInfoEntity;
 import com.example.jackypeng.swangyimusic.rx.db.DownloadDBManager;
 import com.example.jackypeng.swangyimusic.rx.view.widget.DownloadButton;
@@ -34,36 +29,15 @@ import java.util.List;
 public class FragmentDownloadingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     public static final String TAG = "FragmentDownloadingAdapter";
-    private DownloadService.DownloadBinder downloadBinder;
-    private List<DownloadInfoEntity> loadingQueue;
-    private List<DownloadInfoEntity> waitingQueue = new ArrayList<>();
-    private List<DownloadInfoEntity> pausedQueue;
-    private List<DownloadInfoEntity> totalQueue = new ArrayList<>();
+    public List<DownloadMusicTask> runningQueues = new ArrayList<>();
+    public List<DownloadMusicTask> waitingQueues = new ArrayList<>();
+    private List<MusicDownloadTrack> allUnfinishedTasks = new ArrayList<>();
 
-    public FragmentDownloadingAdapter(Context context) {
-        context.bindService(new Intent(context, DownloadService.class), new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName name, IBinder service) {
-                downloadBinder = (DownloadService.DownloadBinder) service;
-                initData();
-            }
 
-            @Override
-            public void onServiceDisconnected(ComponentName name) {
-
-            }
-        }, Context.BIND_AUTO_CREATE);
-    }
-
-    private void initData() {
-        //只能有一个数据源，从数据库中获取,然后和服务中正在下载的任务进行比较，动态的添加监听器，更新进度
-//        loadingQueue = downloadBinder.getLoadingQueue();
-//        waitingQueue = downloadBinder.getWaitingQueue();
-//        pausedQueue = downloadBinder.getPausedQueue();
-//        totalQueue.addAll(loadingQueue);
-//        totalQueue.addAll(waitingQueue);
-//        totalQueue.addAll(pausedQueue);
-//        notifyDataSetChanged();    //刷新界面
+    public FragmentDownloadingAdapter() {
+        this.allUnfinishedTasks = DownloadDBManager.getInstance().getLoadingSongList();
+        runningQueues = DownloadManager.getInstance().getRunningQueues();
+        waitingQueues = DownloadManager.getInstance().getWaitingQueues();
     }
 
     @Override
@@ -74,95 +48,200 @@ public class FragmentDownloadingAdapter extends RecyclerView.Adapter<RecyclerVie
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         final ItemHolder itemHolder = (ItemHolder) holder;
-        final DownloadInfoEntity entity = waitingQueue.get(position);
-        itemHolder.itemView.setTag(entity);
-        //1.更新界面
-        itemHolder.initUI(entity);
-        //2.设置监听器
-        entity.setListener(new DownloadTaskListener() {
-            @Override
-            public void onPrepare(DownloadInfoEntity downloadTask) {
+        final MusicDownloadTrack track = allUnfinishedTasks.get(position);
+        /**
+         * 显示顺序以数据库中的条目为准
+         *
+         * 1.if runningTask==null
+         *      界面时静态的
+         *   else
+         *      if(track.getMusicName==runningTask.getInfo.getMusicName){
+         *          该音乐正在下载
+         *          1.更新界面
+         *          2.设置监听器
+         *      }
+         * 2.
+         */
+        itemHolder.tv_song_name.setText(track.getMusicName());
+        itemHolder.itemView.setTag(track);
+        //1.更新界面，设置监听器，拿到下载任务中的数据
+        if (runningQueues.size() == 0) {
+//            Log.i(TAG, "---runningQueues==0---");
+            itemHolder.tv_song_name.setText(track.getMusicName());
+            itemHolder.downloadButton.setStatus(DownloadStatusConstants.PAUSED);
+        } else {
+            DownloadMusicTask runningTask = getRunnigTask(track.getMusicId());  //拿到正在下载的数据
+            if (runningTask != null) {  //正在下载的歌曲
+                Log.i(TAG, "正在下载:" + track.getMusicName());
+                runningTask.setListener(new SimpleDownloadTaskListener() {
+                    @Override
+                    public void onStart(MusicDownloadTrack downloadTrack) {
+                        if (itemHolder.itemView.getTag() == downloadTrack) {
+                            itemHolder.downloadButton.setStatus(DownloadStatusConstants.PREPARING);
+                        }
+                    }
 
+                    @Override
+                    public void onDownloading(MusicDownloadTrack downloadTrack) {
+                        if (itemHolder.itemView.getTag() == downloadTrack) {
+                            long download_size = downloadTrack.getDownload_size();
+                            long total_size = downloadTrack.getTotal_size();
+                            itemHolder.progressBar.setProgress((int) ((download_size * 1.0f / total_size) * 100));
+                            itemHolder.downloadButton.setStatus(DownloadStatusConstants.DOWNLOADING);
+                        }
+
+                    }
+
+                    @Override
+                    public void onCompleted(MusicDownloadTrack downloadTrack) {
+                        if (itemHolder.itemView.getTag() == downloadTrack) {
+                            Log.i(TAG, "---onCompleted---");
+                            itemHolder.downloadButton.setStatus(DownloadStatusConstants.FINISHED);
+                            refreshData();
+                        }
+                    }
+
+                    @Override
+                    public void onError(MusicDownloadTrack downloadInfo, int errorCode) {
+
+                    }
+                });
+            } else if (hasWaittingMusicId(track.getMusicId())) {
+//                Log.i(TAG, "---hasWaittingMusicId---:" + track.getMusicName());
+                itemHolder.tv_song_name.setText(track.getMusicName());
+                itemHolder.downloadButton.setStatus(DownloadStatusConstants.WAITING);
+            } else {
+                itemHolder.downloadButton.setStatus(DownloadStatusConstants.PAUSED);
             }
+        }
 
-            @Override
-            public void onStart(DownloadInfoEntity downloadTask) {
-                DownloadDBManager.getInstance().insertInfo(downloadTask);
-                if (itemHolder.itemView.getTag() == downloadTask) {
-                    itemHolder.tv_song_name.setText(downloadTask.getSongName() + "--准备开始下载");
-                    Log.i(TAG, "onStart:" + downloadTask.getSongName());
-                }
-            }
-
-            @Override
-            public void onDownloading(DownloadInfoEntity downloadTask) {
-                //跟新进度
-                if (itemHolder.itemView.getTag() == downloadTask) {
-                    DownloadDBManager.getInstance().updateInfo(downloadTask);
-                    itemHolder.progressBar.setProgress((int) (downloadTask.getLoadedSize() * 1.0 / downloadTask.getTotalSize()));
-                }
-                Log.i(TAG, "onDownloading:" + downloadTask.getLoadedSize());
-
-            }
-
-            @Override
-            public void onPause(DownloadInfoEntity downloadTask) {
-                DownloadDBManager.getInstance().updateInfo(downloadTask);
-            }
-
-            @Override
-            public void onCancel(DownloadInfoEntity downloadTask) {
-
-            }
-
-            @Override
-            public void onCompleted(DownloadInfoEntity downloadTask) {
-                DownloadDBManager.getInstance().updateInfo(downloadTask);
-                if (itemHolder.itemView.getTag() == downloadTask) {
-                    itemHolder.tv_song_name.setText(downloadTask.getSongName() + "--下载完成");
-                    itemHolder.downloadButton.setStatus(DownloadStatusConstants.FINISHED);
-                    itemHolder.progressBar.setProgress((int) (1.0 * entity.getLoadedSize() / entity.getTotalSize()));
-                    Log.i(TAG, "onCompleted:" + downloadTask.getSongName());
-                }
-            }
-
-            @Override
-            public void onError(DownloadInfoEntity downloadTask, int errorCode) {
-                DownloadDBManager.getInstance().updateInfo(downloadTask);
-            }
-        });
-
-        //设置点击事件
         itemHolder.downloadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                switch (entity.getStatus()) {
-                    case DownloadStatusConstants.PAUSED:
-                        downloadBinder.try2DownloadSong(entity);
-                        break;
-                    case DownloadStatusConstants.DOWNLOADING:
-                        break;
-                    case DownloadStatusConstants.WAITING:
-                        break;
+                //表示下载任务正在被执行，取消任务
+                if (itemHolder.downloadButton.getmStatus() == DownloadStatusConstants.DOWNLOADING) {
+                    DownloadMusicTask runningTask = getRunnigTask(track.getMusicId());
+                    if (runningTask != null) {
+                        Log.i(TAG, "---暂停任务---:" + runningTask.getTrack().getMusicName());
+                        runningTask.cancelTask();
+                    }
+                    return;
                 }
+                //点击之后，创建DownloadMusicTask，加入下载队列
+                if (itemHolder.downloadButton.getmStatus() != DownloadStatusConstants.PAUSED) {
+                    return;
+                }
+                DownloadMusicTask musicTask = new DownloadMusicTask(track, new SimpleDownloadTaskListener() {
+                    @Override
+                    public void onStart(MusicDownloadTrack downloadTrack) {
+                        if (itemHolder.itemView.getTag() == downloadTrack) {
+                            Log.i(TAG, "---onStart---");
+                            itemHolder.downloadButton.setStatus(DownloadStatusConstants.PREPARING);
+                        }
+                    }
+
+                    @Override
+                    public void onPrepare(MusicDownloadTrack downloadTrack) {
+                        if (itemHolder.itemView.getTag() == downloadTrack) {
+                            Log.i(TAG, "---onPrepare---");
+                            itemHolder.downloadButton.setStatus(DownloadStatusConstants.WAITING);
+                        }
+                    }
+
+                    @Override
+                    public void onDownloading(MusicDownloadTrack downloadTrack) {
+//                        Log.i(TAG, "---onDownloading---");
+                        if (itemHolder.itemView.getTag() == downloadTrack) {
+                            long download_size = downloadTrack.getDownload_size();
+                            long total_size = downloadTrack.getTotal_size();
+                            itemHolder.progressBar.setProgress((int) ((download_size * 1.0f / total_size) * 100));
+                            itemHolder.downloadButton.setStatus(DownloadStatusConstants.DOWNLOADING);
+                        }
+                    }
+
+                    @Override
+                    public void onCompleted(MusicDownloadTrack downloadTrack) {
+                        if (itemHolder.itemView.getTag() == downloadTrack) {
+                            Log.i(TAG, "---onCompleted---");
+                            itemHolder.downloadButton.setStatus(DownloadStatusConstants.FINISHED);
+                            refreshData();
+                        }
+                    }
+
+                    @Override
+                    public void onPause(MusicDownloadTrack downloadTrack) {
+                        if (itemHolder.itemView.getTag() == downloadTrack) {
+                            Log.i(TAG, "---onPause---");
+                            itemHolder.downloadButton.setStatus(DownloadStatusConstants.PAUSED);
+                        }
+                    }
+
+                    @Override
+                    public void onError(MusicDownloadTrack downloadTrack, int errorCode) {
+
+                    }
+                });
+                DownloadManager.getInstance().enqueueTask(musicTask);
             }
         });
-
     }
 
+    //判断等待队列中是否有这首歌
+    synchronized boolean hasWaittingMusicId(String id) {
+        for (DownloadMusicTask task : waitingQueues) {
+            if (task.getTrack().getMusicId().equals(id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    //判断下载队列中是否有这首歌
+    synchronized boolean hasRunningMusicId(String id) {
+        for (DownloadMusicTask task : runningQueues) {
+            if (task.getTrack().getMusicId().equals(id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    //判断下载队列中是否有这首歌
+    synchronized DownloadMusicTask getRunnigTask(String id) {
+        for (DownloadMusicTask task : runningQueues) {
+            if (task.getTrack().getMusicId().equals(id)) {
+                return task;
+            }
+        }
+        return null;
+    }
+
+    void refreshData() {
+        this.allUnfinishedTasks = DownloadDBManager.getInstance().getLoadingSongList();
+        notifyDataSetChanged();
+    }
 
     @Override
     public int getItemCount() {
-        return waitingQueue.size();
+        return allUnfinishedTasks.size();
     }
 
-    public void setData(List<DownloadInfoEntity> downloadInfoEntities, DownloadService.DownloadBinder binder) {
-        if (downloadInfoEntities != null) {
-            waitingQueue = downloadInfoEntities;
-            downloadBinder = binder;
-            notifyDataSetChanged();
+    public void startAll() {
+        Log.i(TAG, "---startAll---");
+        for (MusicDownloadTrack track : allUnfinishedTasks) {
+            String musicId = track.getMusicId();
+            if (!hasRunningMusicId(musicId) && !hasWaittingMusicId(musicId)) {
+                DownloadMusicTask musicTask = new DownloadMusicTask(track);
+                DownloadManager.getInstance().enqueueTask(musicTask);
+            }
         }
+        notifyDataSetChanged();
     }
+
+    public void pauseAll() {
+
+    }
+
 
     static class ItemHolder extends RecyclerView.ViewHolder {
         SimpleDraweeView icon;

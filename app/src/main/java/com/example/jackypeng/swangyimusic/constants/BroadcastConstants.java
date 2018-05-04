@@ -59,4 +59,16 @@ public class BroadcastConstants {
 
     //登录成功广播
     public static final String LOGIN_SUCCESS = "login_success";
+
+    //下载音乐
+    public static final String DOWNLOAD_MUSIC = "download_music";
+
+    //显示歌单列表中单曲音乐操作的DialogFragment
+    public static final String SHOW_MUSIC_MORE_FRAGMENT = "show_music_more_fragment";
+    //显示歌单列表中下载到歌单的DialogFragment
+    public static final String SHOW_MUSIC_MORE_DOWNLOAD_TO_PLAYLIST_FRAGMENT = "show_music_more_download_to_playlist_fragment";
+    //隐藏歌单列表中单曲音乐操作的DialogFragment
+    public static final String HIDE_MUSIC_MORE_FRAGMENT = "hide_music_more_fragment";
+    //隐藏歌单列表中下载到歌单的DialogFragment
+    public static final String HIDE_MUSIC_MORE_DOWNLOAD_TO_PLAYLIST_FRAGMENT = "hide_music_more_download_to_playlist_fragment";
 }

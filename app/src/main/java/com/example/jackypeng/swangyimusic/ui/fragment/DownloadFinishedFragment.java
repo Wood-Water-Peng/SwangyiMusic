@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.example.jackypeng.swangyimusic.R;
 import com.example.jackypeng.swangyimusic.constants.PlayingMusicStatusConstants;
+import com.example.jackypeng.swangyimusic.download_music.MusicDownloadTrack;
 import com.example.jackypeng.swangyimusic.eventBus.DownloadSongFinishedEvent;
 import com.example.jackypeng.swangyimusic.rx.bean.AlbumSongItemBean;
 import com.example.jackypeng.swangyimusic.rx.bean.DownloadInfoEntity;
@@ -43,7 +44,7 @@ public class DownloadFinishedFragment extends BaseFragment {
     @BindView(R.id.fragment_download_finished_recycler_view)
     RecyclerView recyclerView;
     private FragmentDownloadFinishedAdapter downloadFinishedAdapter;
-    private List<DownloadInfoEntity> mData = new ArrayList<>();
+    private List<MusicDownloadTrack> mData = new ArrayList<>();
     private static final int TYPE_HEAD = 1;
     private static final int TYPE_ITEM = 2;
 
@@ -72,7 +73,7 @@ public class DownloadFinishedFragment extends BaseFragment {
     }
 
     private void initData() {
-        List<DownloadInfoEntity> finishedSongList = DownloadDBManager.getInstance().getFinishedSongList();
+        List<MusicDownloadTrack> finishedSongList = DownloadDBManager.getInstance().getFinishedSongList();
         if (finishedSongList != null) {
             mData = finishedSongList;
             downloadFinishedAdapter.notifyDataSetChanged();
@@ -114,33 +115,33 @@ public class DownloadFinishedFragment extends BaseFragment {
                 headHolder.tv_count.setText("共(" + String.valueOf(mData.size()) + ")首");
             } else if (holder instanceof ItemHolder) {
                 final ItemHolder itemHolder = (ItemHolder) holder;
-                final DownloadInfoEntity infoEntity = mData.get(position - 1);
-                itemHolder.tv_song_name.setText(infoEntity.getSongName());
-                itemHolder.tv_author_name.setText(infoEntity.getAuthorName());
+                final MusicDownloadTrack infoEntity = mData.get(position - 1);
+                itemHolder.tv_song_name.setText(infoEntity.getMusicName());
+//                itemHolder.tv_author_name.setText(infoEntity.getAuthorName());
                 itemHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         //播放歌曲
                         try {
                             //判断歌曲的状态,仅仅响应歌曲没有播放的状态
-                            int songStatus = MusicPlayer.getInstance().getSongStatus(infoEntity.getSongId());
-                            if (songStatus != PlayingMusicStatusConstants.INIT) {
-                                return;
-                            }
+//                            int songStatus = MusicPlayer.getInstance().getSongStatus(infoEntity.getSongId());
+//                            if (songStatus != PlayingMusicStatusConstants.INIT) {
+//                                return;
+//                            }
                             //将专辑中的歌曲列表传递过去
                             String[] musicIds = new String[mData.size()];
                             HashMap<String, AlbumListItemTrack> musicMap = new HashMap<>();
                             for (int i = 0; i < mData.size(); i++) {
-                                DownloadInfoEntity entity = mData.get(i);
+                                MusicDownloadTrack entity = mData.get(i);
                                 AlbumListItemTrack itemTrack = new AlbumListItemTrack();
-                                itemTrack.setSongId(entity.getSongId());
-                                itemTrack.setSongName(entity.getSongName());
-                                itemTrack.setAuthor(entity.getAuthorName());
-                                itemTrack.setPic_big_url(entity.getPic_big());
-                                itemTrack.setPic_small_url(entity.getPic_small());
-                                itemTrack.setLrc(entity.getLrc());
-                                musicIds[i] = entity.getSongId();
-                                musicMap.put(entity.getSongId(), itemTrack);
+//                                itemTrack.setSongId(entity.getSongId());
+//                                itemTrack.setSongName(entity.getSongName());
+//                                itemTrack.setAuthor(entity.getAuthorName());
+//                                itemTrack.setPic_big_url(entity.getPic_big());
+//                                itemTrack.setPic_small_url(entity.getPic_small());
+//                                itemTrack.setLrc(entity.getLrc());
+//                                musicIds[i] = entity.getSongId();
+//                                musicMap.put(entity.getSongId(), itemTrack);
                             }
                             MusicPlayer.getInstance().playAll(musicIds, musicMap, holder.getAdapterPosition());
                         } catch (Exception e) {

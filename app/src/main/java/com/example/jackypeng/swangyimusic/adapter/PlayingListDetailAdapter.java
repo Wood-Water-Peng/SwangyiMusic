@@ -1,22 +1,33 @@
 package com.example.jackypeng.swangyimusic.adapter;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.example.jackypeng.swangyimusic.R;
-import com.example.jackypeng.swangyimusic.rx.bean.LocalMusicDetailInfo;
+import com.example.jackypeng.swangyimusic.constants.BroadcastConstants;
+import com.example.jackypeng.swangyimusic.constants.DownloadStatusConstants;
+import com.example.jackypeng.swangyimusic.download_music.MusicDownloadTrack;
+import com.example.jackypeng.swangyimusic.rx.bean.PlayListMusicMoreFragmentBean;
 import com.example.jackypeng.swangyimusic.rx.bean.playingListDetail.PlayingListDetailResult;
+import com.example.jackypeng.swangyimusic.rx.db.DownloadDBManager;
 import com.example.jackypeng.swangyimusic.service.AlbumListItemTrack;
 import com.example.jackypeng.swangyimusic.service.MusicPlayer;
+import com.example.jackypeng.swangyimusic.ui.activity.MultiSelectActivity;
+import com.example.jackypeng.swangyimusic.ui.activity.PlayDetailActivity;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -30,6 +41,9 @@ public class PlayingListDetailAdapter extends RecyclerView.Adapter<RecyclerView.
     public static final int TYPE_HEADER = 1;
     public static final int TYPE_CONTENT = 2;
     private PlayingListDetailResult playingListDetailResult;
+    private List<MusicDownloadStatus> musicDownloadStatuses = new ArrayList<>();
+    private PlayingListDetailContentItemAdapter contentItemAdapter;
+    private static final String TAG = "PlayingListDetailAdapter";
 
     public PlayingListDetailAdapter(Context context) {
         this.mContext = context;
@@ -53,14 +67,26 @@ public class PlayingListDetailAdapter extends RecyclerView.Adapter<RecyclerView.
             PlayingListDetailContentColumnHolder contentColumnHolder = (PlayingListDetailContentColumnHolder) holder;
             contentColumnHolder.tv_total_count.setText("(共" + playingListDetailResult.getResult().getTracks().size() + "首）");
             contentColumnHolder.recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
-            PlayingListDetailContentItemAdapter itemAdapter = new PlayingListDetailContentItemAdapter();
-            contentColumnHolder.recyclerView.setAdapter(itemAdapter);
+            contentItemAdapter = new PlayingListDetailContentItemAdapter();
+            contentColumnHolder.recyclerView.setAdapter(contentItemAdapter);
         } else if (type == TYPE_HEADER) {
             PlayingListDetailHeaderColumnHolder headerColumnHolder = (PlayingListDetailHeaderColumnHolder) holder;
             Glide.with(mContext).load(playingListDetailResult.getResult().getCoverImgUrl()).into(headerColumnHolder.cover);
             headerColumnHolder.tv_title.setText(playingListDetailResult.getResult().getName());
             headerColumnHolder.tv_creator.setText(playingListDetailResult.getResult().getCreator().getString("nickname"));
             Glide.with(mContext).load(playingListDetailResult.getResult().getCreator().getString("avatarUrl")).into(headerColumnHolder.creatpr_avatar);
+            headerColumnHolder.tv_multi_select.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //跳转到多选界面,将歌单id带过去
+                    if (playingListDetailResult == null) return;
+                    Intent intent = new Intent(mContext, MultiSelectActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("albumId", playingListDetailResult.getResult().getId());
+                    intent.putExtras(bundle);
+                    mContext.startActivity(intent);
+                }
+            });
         }
     }
 
@@ -85,12 +111,38 @@ public class PlayingListDetailAdapter extends RecyclerView.Adapter<RecyclerView.
         }
     }
 
+    //更新歌曲下载时的界面状态
+    public void updateDownloadStatus(String musicId, int status) {
+        musicDownloadStatuses.add(new MusicDownloadStatus(musicId, status));
+        contentItemAdapter.notifyDataSetChanged();
+        Log.i(TAG, "---updateDownloadStatus---");
+    }
+
+    static class MusicDownloadStatus {
+        private String id;
+        private int status;
+
+        public MusicDownloadStatus(String id, int status) {
+            this.id = id;
+            this.status = status;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public int getStatus() {
+            return status;
+        }
+    }
+
     static class PlayingListDetailHeaderColumnHolder extends RecyclerView.ViewHolder {
 
         ImageView cover;
         ImageView creatpr_avatar;
         TextView tv_title;
         TextView tv_creator;
+        TextView tv_multi_select;
 
 
         public PlayingListDetailHeaderColumnHolder(View itemView) {
@@ -99,6 +151,7 @@ public class PlayingListDetailAdapter extends RecyclerView.Adapter<RecyclerView.
             creatpr_avatar = (ImageView) itemView.findViewById(R.id.item_playing_list_detail_creator_avatar);
             tv_title = (TextView) itemView.findViewById(R.id.item_playing_list_detail_title);
             tv_creator = (TextView) itemView.findViewById(R.id.item_playing_list_detail_creator_name);
+            tv_multi_select = (TextView) itemView.findViewById(R.id.item_playing_list_detail_header_column_item_holder_multi_select);
         }
     }
 
@@ -172,7 +225,7 @@ public class PlayingListDetailAdapter extends RecyclerView.Adapter<RecyclerView.
                             }
                             MusicPlayer.getInstance().playAll(musicIds, musicMap, holder.getAdapterPosition());
                         } else if (songTrack.getSongId().equals(track.getId())) {   //进入播放详情页面
-
+                            mContext.startActivity(new Intent(mContext, PlayDetailActivity.class));
                         } else {      //播放音乐
                             List<PlayingListDetailResult.PlayingListDetailTrack> tracks = playingListDetailResult.getResult().getTracks();
                             String[] musicIds = new String[tracks.size()];
@@ -191,14 +244,45 @@ public class PlayingListDetailAdapter extends RecyclerView.Adapter<RecyclerView.
                             }
                             MusicPlayer.getInstance().playAll(musicIds, musicMap, holder.getAdapterPosition());
                         }
-
-
                     } catch (RemoteException e) {
                         e.printStackTrace();
                     }
                 }
             });
+            itemHolder.iv_more.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //底部弹出歌曲详情fragment
+                    PlayListMusicMoreFragmentBean bean = new PlayListMusicMoreFragmentBean();
+                    bean.setId(track.getId());
+                    bean.setAlbumName(track.getAlbum().getString("name"));
+                    bean.setArtistName(track.getArtists().getJSONObject(0).getString("name"));
+                    bean.setMusicName(track.getName());
+                    Intent intent = new Intent(BroadcastConstants.SHOW_MUSIC_MORE_FRAGMENT);
+                    Bundle bundle = new Bundle();
+                    bundle.putParcelable("songDetail", bean);
+                    intent.putExtras(bundle);
+                    mContext.sendBroadcast(intent);
+                }
+            });
+            //刷新下载界面
+            if (musicDownloadStatuses.size() > 0) {
+                for (MusicDownloadStatus status : musicDownloadStatuses) {
+                    if (status.getId().equals(track.getId())) {
+                        Log.i(TAG, "更新下载界面内容:" + status);
+                        itemHolder.updateDownloadStatus(status.getStatus());
+                    }
+                }
+            }
 
+            //根据下载数据库数据渲染界面
+            MusicDownloadTrack downloadTrack = DownloadDBManager.getInstance().getDownloadEntity(track.getId());
+            if (downloadTrack != null) {
+                int status = downloadTrack.getStatus();
+                if (status == DownloadStatusConstants.FINISHED) {
+                    itemHolder.updateDownloadStatus(DownloadStatusConstants.FINISHED);
+                }
+            }
         }
 
         @Override
@@ -209,13 +293,16 @@ public class PlayingListDetailAdapter extends RecyclerView.Adapter<RecyclerView.
 
 
         class PlayingListDetailContentItemHolder extends RecyclerView.ViewHolder {
-
             TextView tv_index;
             TextView tv_name;
             TextView tv_alias;
             TextView tv_artist;
             TextView tv_album;
             ImageView iv_playing_icon;
+            ImageView iv_more;
+            ImageView iv_download_finished;
+            ImageView iv_download_paused;
+            ProgressBar pb_downloading;
 
             public PlayingListDetailContentItemHolder(View itemView) {
                 super(itemView);
@@ -225,6 +312,10 @@ public class PlayingListDetailAdapter extends RecyclerView.Adapter<RecyclerView.
                 tv_artist = (TextView) itemView.findViewById(R.id.item_playing_list_detail_recycler_view_item_music_artist);
                 tv_album = (TextView) itemView.findViewById(R.id.item_playing_list_detail_recycler_view_item_music_album);
                 iv_playing_icon = (ImageView) itemView.findViewById(R.id.item_playing_list_detail_recycler_view_item_music_iv_playing_icon);
+                iv_more = (ImageView) itemView.findViewById(R.id.item_playing_list_detail_recycler_view_item_music_iv_more);
+                iv_download_finished = (ImageView) itemView.findViewById(R.id.item_playing_list_detail_recycler_view_item_music_download_finished);
+                iv_download_paused = (ImageView) itemView.findViewById(R.id.item_playing_list_detail_recycler_view_item_music_download_paused);
+                pb_downloading = (ProgressBar) itemView.findViewById(R.id.item_playing_list_detail_recycler_view_item_music_downloading);
             }
 
             void showSongIndex() {
@@ -235,6 +326,26 @@ public class PlayingListDetailAdapter extends RecyclerView.Adapter<RecyclerView.
             void showPlayingStatus() {
                 tv_index.setVisibility(View.GONE);
                 iv_playing_icon.setVisibility(View.VISIBLE);
+            }
+
+            public void updateDownloadStatus(int status) {
+                switch (status) {
+                    case DownloadStatusConstants.DOWNLOADING:
+                        iv_download_finished.setVisibility(View.GONE);
+                        iv_download_paused.setVisibility(View.GONE);
+                        pb_downloading.setVisibility(View.VISIBLE);
+                        break;
+                    case DownloadStatusConstants.PAUSED:
+                        iv_download_finished.setVisibility(View.GONE);
+                        iv_download_paused.setVisibility(View.VISIBLE);
+                        pb_downloading.setVisibility(View.GONE);
+                        break;
+                    case DownloadStatusConstants.FINISHED:
+                        iv_download_finished.setVisibility(View.VISIBLE);
+                        iv_download_paused.setVisibility(View.GONE);
+                        pb_downloading.setVisibility(View.GONE);
+                        break;
+                }
             }
         }
     }

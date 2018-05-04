@@ -115,9 +115,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:drawableTop="@mipmap/list_detail_icn_dld"
+            android:id="@+id/item_playing_list_detail_header_column_item_holder_multi_select"
+            android:drawableTop="@mipmap/multi_select"
             android:gravity="center"
-            android:text="下载"
+            android:text="多选"
             android:textColor="@color/white_text"
             android:textSize="12sp" />
     </LinearLayout>

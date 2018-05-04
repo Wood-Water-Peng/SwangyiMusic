@@ -1,7 +1,6 @@
 package com.example.jackypeng.swangyimusic.ui.fragment;
 
 import android.os.Bundle;
-import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,9 +15,10 @@ import android.widget.TextView;
 
 import com.example.jackypeng.swangyimusic.R;
 import com.example.jackypeng.swangyimusic.adapter.FragmentMusicMoreAdapter;
-import com.example.jackypeng.swangyimusic.adapter.PlayingQueueFragmentAdapter;
-import com.example.jackypeng.swangyimusic.rx.bean.AlbumSongItemBean;
-import com.example.jackypeng.swangyimusic.service.MusicPlayer;
+import com.example.jackypeng.swangyimusic.constants.DownloadStatusConstants;
+import com.example.jackypeng.swangyimusic.download_music.MusicDownloadTrack;
+import com.example.jackypeng.swangyimusic.rx.bean.PlayListMusicMoreFragmentBean;
+import com.example.jackypeng.swangyimusic.rx.db.DownloadDBManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,10 +29,10 @@ import butterknife.Unbinder;
 
 /**
  * Created by jackypeng on 2018/3/14.
- * 专辑中关于歌曲的更多操作
+ * 歌单中关于歌曲的更多操作
  */
 
-public class MusicMoreFragment extends DialogFragment {
+public class PlayListMusicMoreFragment extends DialogFragment {
 
     @BindView(R.id.fragment_music_more_song_name)
     TextView tv_song_name;
@@ -41,8 +41,8 @@ public class MusicMoreFragment extends DialogFragment {
     private Unbinder unbinder;
     private FragmentMusicMoreAdapter musicMoreAdapter;
 
-    public static MusicMoreFragment newInstance(AlbumSongItemBean info) {
-        MusicMoreFragment fragment = new MusicMoreFragment();
+    public static PlayListMusicMoreFragment newInstance(PlayListMusicMoreFragmentBean info) {
+        PlayListMusicMoreFragment fragment = new PlayListMusicMoreFragment();
         Bundle args = new Bundle();
         args.putParcelable("songInfo", info);
         fragment.setArguments(args);
@@ -67,17 +67,20 @@ public class MusicMoreFragment extends DialogFragment {
     }
 
     private void initData() {
-        AlbumSongItemBean songDetail = getArguments().getParcelable("songInfo");
+        PlayListMusicMoreFragmentBean songDetail = getArguments().getParcelable("songInfo");
         if (songDetail == null) return;
 
-        String artist = songDetail.getAuthor();
-        String albumName = songDetail.getAlbum_title();
-        String musicName = songDetail.getTitle();
+        String artist = songDetail.getArtistName();
+        String albumName = songDetail.getAlbumName();
+        String musicName = songDetail.getMusicName();
         tv_song_name.setText(musicName);
         List<FlowItem> itemList = new ArrayList<>();
         itemList.add(new FlowItem("收藏到歌单", R.mipmap.lay_icn_fav));
         itemList.add(new FlowItem("分享", R.mipmap.lay_icn_share));
-        itemList.add(new FlowItem("下载", R.mipmap.lay_icn_dld));
+        MusicDownloadTrack downloadTrack = DownloadDBManager.getInstance().getDownloadEntity(songDetail.getId());
+        if (downloadTrack == null || downloadTrack.getStatus() != DownloadStatusConstants.FINISHED) {
+            itemList.add(new FlowItem("下载", R.mipmap.lay_icn_dld));
+        }
         itemList.add(new FlowItem("歌手:" + artist, R.mipmap.lay_icn_artist));
         itemList.add(new FlowItem("专辑:" + albumName, R.mipmap.lay_icn_alb));
         itemList.add(new FlowItem("设为铃声", R.mipmap.lay_icn_ring));

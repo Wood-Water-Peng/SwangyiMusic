@@ -1,27 +1,29 @@
 package com.example.jackypeng.swangyimusic.download_music;
 
-import android.content.Intent;
-import android.os.Bundle;
 import android.util.Log;
 
-import com.alibaba.fastjson.JSONObject;
-import com.example.jackypeng.swangyimusic.MainApplication;
-import com.example.jackypeng.swangyimusic.rx.api.NetApi;
-import com.example.jackypeng.swangyimusic.util.AESTools;
-import com.example.jackypeng.swangyimusic.util.NetUtil;
-import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
+import com.example.jackypeng.swangyimusic.constants.DownloadStatusConstants;
+import com.example.jackypeng.swangyimusic.network.DownloadMusicTask;
+import com.example.jackypeng.swangyimusic.rx.bean.PlayUrlBean;
+import com.example.jackypeng.swangyimusic.rx.bean.PlayingLrcBean;
+import com.example.jackypeng.swangyimusic.rx.contract.MusicUrlContract;
+import com.example.jackypeng.swangyimusic.rx.db.DownloadDBManager;
+import com.example.jackypeng.swangyimusic.rx.model.PlayingMusicInfoModel;
+import com.example.jackypeng.swangyimusic.rx.presenter.PlayingMusicInfoPresenter;
+import com.example.jackypeng.swangyimusic.util.ToastUtil;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by jackypeng on 2018/3/20.
  */
 
 public class DownloadManager {
-    public static final String TAG = "DownloadDBManager";
+    public static final String TAG = "DownloadManager";
     private static DownloadManager instance;
+    private Dispatcher dispatcher;
+
 
     public static DownloadManager getInstance() {
         synchronized (DownloadManager.class) {
@@ -34,41 +36,87 @@ public class DownloadManager {
         return instance;
     }
 
-    /**
-     * @param downloadInfo 1.根据songId,获得歌曲的详细信息
-     *                     2.拿到下载link
-     */
-    public void startDownload(final DownloadInfo downloadInfo) {
-        long timeMillis = System.currentTimeMillis();
-        String str = "songid=" + downloadInfo.getSongId() + "&ts=" + timeMillis;
-        String e = AESTools.encrpty(str);
-        StringBuilder builder = new StringBuilder(NetApi.BASE_URL + NetApi.GET_SONG_DETAIL);
-        builder.append("&")
-                .append(str)
-                .append("&e=")
-                .append(e);
-        Log.i(TAG, "request_url:" + builder.toString());
-        NetUtil.getInstance().fetchData(builder.toString(), new Callback() {
-            @Override
-            public void onFailure(Request request, IOException e) {
-                //
-            }
+    private DownloadManager() {
+        dispatcher = new Dispatcher();
+    }
 
-            @Override
-            public void onResponse(Response response) throws IOException {
-                String result = response.body().string();
-                Log.i(TAG, "response:" + result);
-                //如果成功，将信息提交到DownloadService
-                String url = JSONObject.parseObject(result).getJSONObject("songurl").getJSONArray("url").getJSONObject(0).getString("show_link");
-                Intent intent = new Intent(MainApplication.getAppContext(), DownloadService.class);
-                intent.setAction(DownloadService.ADD_TASK);
-                Bundle bundle = new Bundle();
-                downloadInfo.setUrl(url);
-                bundle.putParcelable("downloadInfo", downloadInfo);
-                intent.putExtras(bundle);
-                //该服务的生命周期和App相同
-                MainApplication.getAppContext().startService(intent);
-            }
-        });
+    public Dispatcher getDispatcher() {
+        return dispatcher;
+    }
+
+    /**
+     *
+     */
+    public void startDownload(DownloadInfo info, DownloadTaskListener listener) {
+        /**
+         *
+         *1.根据songId去获取歌曲的下载链接
+         */
+        if (info == null) {
+            throw new IllegalStateException("DownloadInfo cannot be null");
+        }
+        MusicDownloadTrack track = new MusicDownloadTrack();
+        track.setMusicId(info.getSongId());
+        track.setMusicName(info.getSongName());
+        track.setStatus(DownloadStatusConstants.WAITING);
+        getDispatcher().enqueue(new DownloadMusicTask(track, listener));
+    }
+
+    public void enqueueTask(DownloadMusicTask task) {
+        MusicDownloadTrack track = task.getTrack();
+        track.setStatus(DownloadStatusConstants.WAITING);
+        DownloadDBManager.getInstance().insertInfo(track);
+        Log.i(TAG, "id:" + track.getMusicId() + "---" + track.getMusicName() + "---插入数据库");
+        getDispatcher().enqueue(task);
+    }
+
+    public void enqueueTasks(List<DownloadInfo> selectedItems) {
+        //创建出相应的DownloadMusicTask
+        List<DownloadMusicTask> downloadTasks = new ArrayList<>();
+        List<MusicDownloadTrack> downloadTracks = new ArrayList<>();
+        for (int i = 0; i < selectedItems.size(); i++) {
+            DownloadInfo downloadInfo = selectedItems.get(i);
+            MusicDownloadTrack track = new MusicDownloadTrack();
+            track.setMusicId(downloadInfo.getSongId());
+            track.setMusicName(downloadInfo.getSongName());
+            track.setStatus(DownloadStatusConstants.WAITING);
+            downloadTasks.add(new DownloadMusicTask(track));
+            //在下载记录数据库创建一个下载记录
+            downloadTracks.add(track);
+//            Log.i(TAG, "num:" + i + "---id:" + downloadInfo.getSongId() + "---" + downloadInfo.getSongName() + "---插入数据库");
+//            DownloadDBManager.getInstance().insertInfo(downloadTrack);
+        }
+        DownloadDBManager.getInstance().insertListTrack(downloadTracks);
+
+        for (int i = 0; i < downloadTasks.size(); i++) {
+            getDispatcher().enqueue(downloadTasks.get(i));
+        }
+
+    }
+
+    public List<DownloadMusicTask> getRunningQueues() {
+        return getDispatcher().getRunningQueues();
+    }
+
+    public List<DownloadMusicTask> getWaitingQueues() {
+        return getDispatcher().getWaitingQueues();
+    }
+
+    public boolean isTaskInRunningQueue(String musicId) {
+        List<DownloadMusicTask> runningQueues = getDispatcher().getRunningQueues();
+        for (DownloadMusicTask task : runningQueues) {
+            if (task.getTrack().getMusicId().equals(musicId))
+                return true;
+        }
+        return false;
+    }
+
+    public boolean isTaskInWaitingQueue(String musicId) {
+        List<DownloadMusicTask> waitingQueues = getDispatcher().getWaitingQueues();
+        for (DownloadMusicTask task : waitingQueues) {
+            if (task.getTrack().getMusicId().equals(musicId))
+                return true;
+        }
+        return false;
     }
 }

@@ -5,90 +5,125 @@
     android:background="?android:attr/selectableItemBackground"
     android:paddingLeft="20dp">
 
-    <RelativeLayout
+
+    <FrameLayout
+        android:id="@+id/item_playing_list_detail_recycler_view_item_music_index_wrapper"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true">
 
-        <FrameLayout
+        <TextView
+            android:id="@+id/item_playing_list_detail_recycler_view_item_music_index"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true">
+            android:textColor="@color/light_gray"
+            android:textSize="14sp" />
+
+        <ImageView
+            android:id="@+id/item_playing_list_detail_recycler_view_item_music_iv_playing_icon"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:background="@mipmap/song_play_icon" />
+
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="20dp"
+        android:layout_toRightOf="@+id/item_playing_list_detail_recycler_view_item_music_index_wrapper"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
 
             <TextView
-                android:id="@+id/item_playing_list_detail_recycler_view_item_music_index"
+                android:id="@+id/item_playing_list_detail_recycler_view_item_music_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/light_gray"
+                android:textColor="@color/black"
                 android:textSize="14sp" />
 
-            <ImageView
-                android:id="@+id/item_playing_list_detail_recycler_view_item_music_iv_playing_icon"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:background="@mipmap/song_play_icon" />
+            <TextView
+                android:id="@+id/item_playing_list_detail_recycler_view_item_music_alias"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textColor="@color/light_gray"
+                android:textSize="14sp" />
+        </LinearLayout>
 
-        </FrameLayout>
-
-        <TextView
-            android:id="@+id/item_playing_list_detail_recycler_view_item_music_name"
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="25dp"
-            android:textColor="@color/black"
-            android:textSize="14sp" />
+            android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/item_playing_list_detail_recycler_view_item_music_alias"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_toRightOf="@+id/item_playing_list_detail_recycler_view_item_music_name"
-            android:ellipsize="end"
-            android:singleLine="true"
-            android:textColor="@color/light_gray"
-            android:textSize="14sp" />
+            <FrameLayout
+                android:layout_width="14dp"
+                android:layout_height="14dp">
 
-        <TextView
-            android:id="@+id/item_playing_list_detail_recycler_view_item_music_artist"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/item_playing_list_detail_recycler_view_item_music_name"
-            android:layout_marginLeft="25dp"
-            android:layout_marginTop="2dp"
-            android:textColor="@color/light_gray"
-            android:textSize="10sp" />
+                <ImageView
+                    android:id="@+id/item_playing_list_detail_recycler_view_item_music_download_finished"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@mipmap/music_downloaded"
+                    android:visibility="gone" />
 
-        <TextView
-            android:id="@+id/item_playing_list_detail_recycler_view_item_music_album"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/item_playing_list_detail_recycler_view_item_music_name"
-            android:layout_marginLeft="5dp"
-            android:layout_marginTop="2dp"
-            android:layout_toRightOf="@+id/item_playing_list_detail_recycler_view_item_music_artist"
-            android:textColor="@color/light_gray"
-            android:textSize="10sp" />
+                <ImageView
+                    android:id="@+id/item_playing_list_detail_recycler_view_item_music_download_paused"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@mipmap/music_download_paused"
+                    android:visibility="gone" />
 
+                <ProgressBar
+                    android:id="@+id/item_playing_list_detail_recycler_view_item_music_downloading"
+                    style="@android:style/Widget.ProgressBar.Small"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone" />
 
-        <ImageView
-            android:id="@+id/item_playing_list_detail_recycler_view_item_music_btn_play"
-            android:layout_width="26dp"
-            android:layout_height="26dp"
-            android:layout_centerVertical="true"
-            android:layout_marginRight="20dp"
-            android:layout_toLeftOf="@+id/item_playing_list_detail_recycler_view_item_music_btn_more"
-            android:background="@mipmap/playbar_btn_play" />
+            </FrameLayout>
 
-        <ImageView
-            android:id="@+id/item_playing_list_detail_recycler_view_item_music_btn_more"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:layout_marginRight="20dp"
-            android:background="@mipmap/list_icn_more" />
-    </RelativeLayout>
+            <TextView
+                android:id="@+id/item_playing_list_detail_recycler_view_item_music_artist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/light_gray"
+                android:textSize="10sp" />
 
+            <TextView
+                android:id="@+id/item_playing_list_detail_recycler_view_item_music_album"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/light_gray"
+                android:textSize="10sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/item_playing_list_detail_recycler_view_item_music_btn_play"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="20dp"
+        android:layout_toLeftOf="@+id/item_playing_list_detail_recycler_view_item_music_iv_more"
+        android:background="@mipmap/playbar_btn_play" />
+
+    <ImageView
+        android:id="@+id/item_playing_list_detail_recycler_view_item_music_iv_more"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="20dp"
+        android:background="?android:attr/selectableItemBackground"
+        android:scaleType="center"
+        android:src="@mipmap/list_icn_more" />
 
     <ImageView
         android:layout_width="match_parent"

@@ -13,6 +13,7 @@ public class PlayUrlBean {
     public static class PlayUrlBeanData {
         private String id;
         private String url;
+        private String type;
         private long size;
 
         public String getId() {
@@ -37,6 +38,14 @@ public class PlayUrlBean {
 
         public void setSize(long size) {
             this.size = size;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
         }
     }
 

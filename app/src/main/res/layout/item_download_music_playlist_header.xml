@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:background="?android:attr/selectableItemBackground"
+    android:gravity="center_vertical">
+
+    <ImageView
+        android:id="@+id/fragment_download_music_playlist_header_icon"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_margin="5dp"
+        android:scaleType="center"
+        android:src="@mipmap/add_playlist" />
+
+    <TextView
+        android:id="@+id/fragment_download_music_playlist_item_count"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:text="新建歌单"
+        android:textColor="@color/black"
+        android:textSize="14sp" />
+
+</LinearLayout>

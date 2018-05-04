@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -12,8 +13,8 @@
         android:orientation="horizontal">
 
         <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
             android:layout_gravity="center"
             android:layout_marginLeft="25dp"
             android:scaleType="fitCenter"
@@ -24,12 +25,13 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginLeft="2dp"
+            android:id="@+id/fragment_download_start_all"
             android:text="全部开始"
             android:textSize="16sp" />
 
         <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
             android:layout_gravity="center"
             android:layout_marginLeft="25dp"
             android:scaleType="fitCenter"
@@ -40,6 +42,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginLeft="2dp"
+            android:id="@+id/fragment_download_pause_all"
             android:text="全部暂停"
             android:textSize="16sp" />
 
@@ -53,8 +56,15 @@
 
     </LinearLayout>
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/fragment_downloading_recyclerview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+    <com.example.jackypeng.swangyimusic.ui.widget.SmartLoadingLayout
+        android:id="@+id/fragment_downloading_sll"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:sll_content="@+id/fragment_downloading_recyclerview">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/fragment_downloading_recyclerview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </com.example.jackypeng.swangyimusic.ui.widget.SmartLoadingLayout>
 </LinearLayout>

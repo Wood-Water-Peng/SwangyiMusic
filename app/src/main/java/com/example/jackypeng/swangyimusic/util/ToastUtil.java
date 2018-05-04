@@ -24,7 +24,7 @@ public class ToastUtil {
     }
 
     public void toast(String text) {
-        Toast.makeText(MainApplication.getAppContext(), text, Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainApplication.getAppContext(), text, Toast.LENGTH_LONG).show();
     }
 
 

@@ -5,7 +5,6 @@ import android.content.Context;
 import android.os.RemoteException;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,9 +16,8 @@ import com.example.jackypeng.swangyimusic.constants.PlayingMusicStatusConstants;
 import com.example.jackypeng.swangyimusic.rx.bean.AlbumSongItemBean;
 import com.example.jackypeng.swangyimusic.service.AlbumListItemTrack;
 import com.example.jackypeng.swangyimusic.service.MusicPlayer;
-import com.example.jackypeng.swangyimusic.ui.fragment.MusicMoreFragment;
+import com.example.jackypeng.swangyimusic.ui.fragment.PlayListMusicMoreFragment;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -67,10 +65,10 @@ public class AlbumDetailSongListAdapter extends RecyclerView.Adapter<RecyclerVie
             listItem.iv_show_detail.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    MusicMoreFragment musicMoreFragment = MusicMoreFragment.newInstance(itemBean);
-                    if (mContext instanceof Activity) {
-                        musicMoreFragment.show(((FragmentActivity) mContext).getSupportFragmentManager(), "musicMoreFragment");
-                    }
+//                    PlayListMusicMoreFragment playListMusicMoreFragment = PlayListMusicMoreFragment.newInstance(itemBean);
+//                    if (mContext instanceof Activity) {
+//                        playListMusicMoreFragment.show(((FragmentActivity) mContext).getSupportFragmentManager(), "playListMusicMoreFragment");
+//                    }
                 }
             });
 
