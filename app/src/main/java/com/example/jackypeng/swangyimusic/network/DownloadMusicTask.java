@@ -30,6 +30,8 @@ import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import static com.example.jackypeng.swangyimusic.download_music.DownloadTaskListener.DOWNLOAD_ERROR_FILE_NOT_FOUND;
+
 /**
  * Created by jackypeng on 2018/4/26.
  */
@@ -97,7 +99,14 @@ public class DownloadMusicTask implements Runnable {
             Log.i(TAG, "获取url---code:" + response.code());
             if (response.code() > 300) {   //获取url失败
                 Log.i(TAG, "获取url失败...");
-//                manager.getDispatcher().finished(this);
+                if (listener != null) {
+                    UIUtil.runInMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onError(track, DOWNLOAD_ERROR_FILE_NOT_FOUND);
+                        }
+                    });
+                }
                 return;
             }
             PlayUrlBean playUrlBean = JSONObject.parseObject(response.body().string(), PlayUrlBean.class);
@@ -122,7 +131,15 @@ public class DownloadMusicTask implements Runnable {
             int responseCode = httpConnection.getResponseCode();
             Log.i(TAG, "responseCode:" + responseCode);
             if (responseCode > 300) {
-                ToastUtil.getInstance().toast("responseCode:" + responseCode + "---下载错误");
+                Log.i(TAG, "responseCode:" + responseCode + "---下载错误");
+                if (listener != null) {
+                    UIUtil.runInMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onError(track, DOWNLOAD_ERROR_FILE_NOT_FOUND);
+                        }
+                    });
+                }
                 sendDownloadPausedBroadcast();
                 return;
             }
@@ -176,6 +193,8 @@ public class DownloadMusicTask implements Runnable {
                     sendDownloadPausedBroadcast();
                     track.setStatus(DownloadStatusConstants.PAUSED);
                     track.setDownload_size(offset);
+                    DownloadDBManager.getInstance().updateInfo(track);
+                    manager.getDispatcher().finished(DownloadMusicTask.this);
                     if (listener != null) {
                         UIUtil.runInMainThread(new Runnable() {
                             @Override
@@ -184,7 +203,6 @@ public class DownloadMusicTask implements Runnable {
                             }
                         });
                     }
-                    DownloadDBManager.getInstance().updateInfo(track);
                 } else {
                     //任务完成
 //                    manager.getDispatcher().finished(this);
@@ -209,10 +227,13 @@ public class DownloadMusicTask implements Runnable {
             Log.i(TAG, "Exception:" + e.getMessage());
             //任务暂停
             sendDownloadPausedBroadcast();
-            if (track != null) {
-//                track.setStatus(DownloadStatusConstants.PAUSED);
-//                track.setDownload_size(track.getDownload_size());
-//                DownloadDBManager.getInstance().updateInfo(track);
+            if (listener != null) {
+                UIUtil.runInMainThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        listener.onPause(track);
+                    }
+                });
             }
         } finally {
             if (httpConnection != null) {
@@ -227,6 +248,7 @@ public class DownloadMusicTask implements Runnable {
                 }
             }
             //告知管理器，下载完成
+            Log.i(TAG, "---finally---");
             manager.getDispatcher().finished(DownloadMusicTask.this);
         }
     }

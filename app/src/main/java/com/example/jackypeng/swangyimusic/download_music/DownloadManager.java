@@ -62,7 +62,7 @@ public class DownloadManager {
         getDispatcher().enqueue(new DownloadMusicTask(track, listener));
     }
 
-    public void enqueueTask(DownloadMusicTask task) {
+    synchronized public void enqueueTask(DownloadMusicTask task) {
         MusicDownloadTrack track = task.getTrack();
         track.setStatus(DownloadStatusConstants.WAITING);
         DownloadDBManager.getInstance().insertInfo(track);
@@ -70,7 +70,7 @@ public class DownloadManager {
         getDispatcher().enqueue(task);
     }
 
-    public void enqueueTasks(List<DownloadInfo> selectedItems) {
+    synchronized public void enqueueTasks(List<DownloadInfo> selectedItems) {
         //创建出相应的DownloadMusicTask
         List<DownloadMusicTask> downloadTasks = new ArrayList<>();
         List<MusicDownloadTrack> downloadTracks = new ArrayList<>();
@@ -102,7 +102,7 @@ public class DownloadManager {
         return getDispatcher().getWaitingQueues();
     }
 
-    public boolean isTaskInRunningQueue(String musicId) {
+    synchronized public boolean isTaskInRunningQueue(String musicId) {
         List<DownloadMusicTask> runningQueues = getDispatcher().getRunningQueues();
         for (DownloadMusicTask task : runningQueues) {
             if (task.getTrack().getMusicId().equals(musicId))
@@ -111,12 +111,25 @@ public class DownloadManager {
         return false;
     }
 
-    public boolean isTaskInWaitingQueue(String musicId) {
+    synchronized public boolean isTaskInWaitingQueue(String musicId) {
         List<DownloadMusicTask> waitingQueues = getDispatcher().getWaitingQueues();
         for (DownloadMusicTask task : waitingQueues) {
             if (task.getTrack().getMusicId().equals(musicId))
                 return true;
         }
         return false;
+    }
+
+    synchronized public void removeWaitingTask(String musicId) {
+        List<DownloadMusicTask> waitingQueues = getDispatcher().getWaitingQueues();
+        DownloadMusicTask toRemovedTask = null;
+        for (DownloadMusicTask task : waitingQueues) {
+            if (task.getTrack().getMusicId().equals(musicId)) {
+                toRemovedTask = task;
+            }
+        }
+        if (toRemovedTask != null) {
+            waitingQueues.remove(toRemovedTask);
+        }
     }
 }

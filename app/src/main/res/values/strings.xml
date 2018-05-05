@@ -7,7 +7,7 @@
     <string name="btn_status_waiting">等待中</string>
     <string name="btn_status_downloading">点击暂停</string>
     <string name="btn_status_paused">点击下载</string>
-    <string name="btn_status_finished">安装</string>
+    <string name="btn_status_finished">下载完成</string>
 
     <string name="sure_to_delete_music">确定删除歌曲吗</string>
     <string name="sure">确定</string>

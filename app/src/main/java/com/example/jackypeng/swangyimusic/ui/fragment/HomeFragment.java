@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 
 import com.example.jackypeng.swangyimusic.R;
 import com.example.jackypeng.swangyimusic.adapter.FragmentHomeAdapter;
@@ -47,7 +48,6 @@ public class HomeFragment extends BaseFragment<UserPlayListContract.Model, UserP
     private FragmentHomeAdapter homeAdapter;
     private List<RecentPlayBean> recentPlayList;
     private List<UserPlayListBean.UserPlayListItem> userPlayListItems;
-
 
     @Override
     protected int getLayoutId() {
@@ -95,6 +95,8 @@ public class HomeFragment extends BaseFragment<UserPlayListContract.Model, UserP
             } else {
                 mPresenter.getUserPlayList(userId);
             }
+        } else {
+            ToastUtil.getInstance().toast("用户未登录");
         }
     }
 
@@ -128,7 +130,7 @@ public class HomeFragment extends BaseFragment<UserPlayListContract.Model, UserP
 
     @Override
     public void showErrorWithStatus(String msg) {
-
+        Log.i(TAG, "msg:" + msg);
     }
 
     @Override

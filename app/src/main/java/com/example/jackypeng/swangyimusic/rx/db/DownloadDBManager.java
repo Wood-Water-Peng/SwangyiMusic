@@ -83,8 +83,12 @@ public class DownloadDBManager {
     public List<MusicDownloadTrack> getLoadingSongList() {
         QueryBuilder<MusicDownloadTrack> queryBuilder = daoSession.getMusicDownloadTrackDao().queryBuilder();
         queryBuilder.whereOr(MusicDownloadTrackDao.Properties.Status.eq(DownloadStatusConstants.DOWNLOADING)
-                , MusicDownloadTrackDao.Properties.Status.eq(DownloadStatusConstants.PAUSED),MusicDownloadTrackDao.Properties.Status.eq(DownloadStatusConstants.WAITING));
+                , MusicDownloadTrackDao.Properties.Status.eq(DownloadStatusConstants.PAUSED), MusicDownloadTrackDao.Properties.Status.eq(DownloadStatusConstants.WAITING));
         return queryBuilder.list();
 
+    }
+
+    public void deleteDownloadindList() {
+        daoSession.getMusicDownloadTrackDao().deleteInTx(getLoadingSongList());
     }
 }

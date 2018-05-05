@@ -44,6 +44,8 @@ public class DownloadingFragment extends BaseFragment {
     TextView tv_start_all;
     @BindView(R.id.fragment_download_pause_all)
     TextView tv_pause_all;
+    @BindView(R.id.fragment_download_clear_all)
+    TextView tv_clear_all;
     private FragmentDownloadingAdapter downloadingAdapter;
 
 
@@ -57,6 +59,12 @@ public class DownloadingFragment extends BaseFragment {
     public void pauseAll() {
         //将下载和等待队列中的任务全部移除
         downloadingAdapter.pauseAll();
+    }
+
+    @OnClick(R.id.fragment_download_clear_all)
+    public void clearAll() {
+        //将下载和等待队列中的任务全部清空
+        downloadingAdapter.tryClearAll();
     }
 
     @Override
@@ -91,7 +99,7 @@ public class DownloadingFragment extends BaseFragment {
     }
 
     private void initViewPager() {
-        downloadingAdapter = new FragmentDownloadingAdapter();
+        downloadingAdapter = new FragmentDownloadingAdapter(getContext());
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(downloadingAdapter);
     }

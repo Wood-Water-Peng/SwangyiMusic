@@ -87,6 +87,7 @@ public class MultiSelectActivity extends BaseActivity<PlayingListDetailContract.
             public void onClick(DialogInterface dialog, int which) {
                 //加入到下载队列
                 DownloadManager.getInstance().enqueueTasks(undownloadedItems);
+                undownloadedItems.clear();
             }
         });
         tipDialog.setButton(BUTTON_NEGATIVE, "取消", new DialogInterface.OnClickListener() {
@@ -95,7 +96,7 @@ public class MultiSelectActivity extends BaseActivity<PlayingListDetailContract.
 
             }
         });
-        tipDialog.setMessage("将下载" + selectedItems.size() + "首歌曲，大约会占用40M空间。");
+        tipDialog.setMessage("将下载" + undownloadedItems.size() + "首歌曲，大约会占用40M空间。");
         tipDialog.show();
         //弹出提示框
 

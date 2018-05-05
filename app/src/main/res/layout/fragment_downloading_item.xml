@@ -65,6 +65,6 @@
         android:focusable="false"
         android:foregroundTint="#434343"
         android:padding="6dp"
-        android:src="@mipmap/list_icn_more" />
+        android:src="@mipmap/rubbish" />
 
 </LinearLayout>

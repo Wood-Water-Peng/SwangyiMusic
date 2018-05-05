@@ -17,7 +17,7 @@ import java.util.concurrent.Executors;
  */
 
 public class Dispatcher {
-    private static final int MAX_THREADS = 1;
+    private static final int MAX_THREADS = 2;
     private static final String TAG = "Dispatcher";
     private ExecutorService executor;
     private List<DownloadMusicTask> runningQueues = new ArrayList<>();
@@ -46,9 +46,11 @@ public class Dispatcher {
 
     public synchronized void finished(DownloadMusicTask task) {
         Log.i(TAG, "finished:" + task.getTrack().getId());
-        Log.i(TAG, "cur_task:" + runningQueues.get(0).getTrack().getId());
-        boolean remove = runningQueues.remove(task);
-        Log.i(TAG, "remove_from_running:" + remove);
+        if (runningQueues.size() > 0) {
+            Log.i(TAG, "cur_task:" + runningQueues.get(0).getTrack().getId());
+            boolean remove = runningQueues.remove(task);
+            Log.i(TAG, "remove_from_running:" + remove);
+        }
         //删除数据库中的下载记录
         promoteTasks();
     }

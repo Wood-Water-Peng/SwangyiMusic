@@ -104,8 +104,6 @@ public class MultiSelectAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 selectedInfos.add(valueAt);
             }
         }
-        selectedItems.clear();
-//        notifyDataSetChanged();
         return selectedInfos;
     }
 
